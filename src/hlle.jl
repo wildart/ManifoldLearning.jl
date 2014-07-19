@@ -1,4 +1,4 @@
-# Hessian Eigenmapping (HLLE)
+# Hessian Eigenmaps (HLLE)
 # ---------------------------
 # Hessian eigenmaps: Locally linear embedding techniques for high-dimensional data,
 # D. Donoho and C. Grimes, Proc Natl Acad Sci U S A. 2003 May 13; 100(10): 5591–5596

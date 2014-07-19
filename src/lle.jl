@@ -1,4 +1,4 @@
-# Locally Linear Embedding
+# Locally Linear Embedding (LLE)
 # ------------------------
 # Nonlinear dimensionality reduction by locally linear embedding,
 # Roweis, S. & Saul, L., Science 290:2323 (2000)
