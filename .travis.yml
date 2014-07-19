@@ -15,3 +15,5 @@ before_install:
 script:
   - julia -e 'Pkg.init(); Pkg.clone(pwd())'
   - julia --code-coverage test/runtests.jl
+after_success:
+  - julia -e 'cd(Pkg.dir("ManifoldLearning")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
