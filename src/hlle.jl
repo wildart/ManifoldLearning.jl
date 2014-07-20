@@ -3,9 +3,39 @@
 # Hessian eigenmaps: Locally linear embedding techniques for high-dimensional data,
 # D. Donoho and C. Grimes, Proc Natl Acad Sci U S A. 2003 May 13; 100(10): 5591–5596
 
-typealias HLLE DistSpectralResults
+#### HLLE type
+immutable HLLE <: SpectralResult
+    k::Int
+    λ::Vector{Float64}
+    proj::Projection
 
-function hlle(X::Matrix; d::Int=2, k::Int=12)
+    HLLE(k::Int, λ::Vector{Float64}, proj::Projection) = new(k, λ, proj)
+end
+
+## properties
+indim(M::HLLE) = size(M.proj, 1)
+outdim(M::HLLE) = size(M.proj, 2)
+projection(M::HLLE) = M.proj
+
+eigvals(M::HLLE) = M.λ
+nneighbors(M::HLLE) = M.k
+
+## show & dump
+function show(io::IO, M::HLLE)
+    print(io, "Hessian Eigenmaps(indim = $(indim(M)), outdim = $(outdim(M)), nneighbors = $(nneighbors(M)))")
+end
+
+function dump(io::IO, M::HLLE)
+    show(io, M)
+    println(io, "eigenvalues: ")
+    Base.showarray(io, M.λ', header=false, repr=false)
+    println(io)
+    println(io, "projection:")
+    Base.showarray(io, M.proj, header=false, repr=false)
+end
+
+## interface functions
+function fit(::Type{HLLE}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
     n = size(X, 2)
 
     # Identify neighbors
@@ -36,15 +66,8 @@ function hlle(X::Matrix; d::Int=2, k::Int=12)
         H = full(F[:Q])[:,d+2:end]'
         W[(i-1)*hs+(1:hs),I[:,i]] = H
     end
-    # finding the basis for the null space
-    F = eigfact(full(W'*W))
-    #return HLLE(d, k, F[:values][2:d+1], F[:vectors][:,2:d+1]' .* sqrt(n))
-    return HLLE(F[:vectors][:,2:d+1]' .* sqrt(n), F[:values][2:d+1], k)
 
-    #λ, E = eig(full(W'*W))
-    #idx = sortperm(λ)[2:d+1]
-    #return HLLE(d, k, λ[idx], E[:, idx]' .* sqrt(n))
-    # λ, E = eigs(W'*W, nev=d+1)
-    # idx = sortperm(λ)[2:d+1]
-    # return HLLE(d, k, λ[idx], E[:, idx]' .* sqrt(n))
+    # decomposition
+    λ, V = decompose(W'*W, d)
+    return HLLE(k, λ, V' .* sqrt(n))
 end

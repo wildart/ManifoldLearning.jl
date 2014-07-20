@@ -150,3 +150,18 @@ function swiss_roll(n::Int = 1000, noise::Float64=0.05)
     labels = vec(int(rem(sum([round(t / 2) round(height / 12)], 2), 2)))
     return X', labels
 end
+
+function decompose{T}(M::AbstractMatrix{T}, d::Int)
+    W = isa(M, AbstractSparseArray) ? Symmetric(full(M)) : Symmetric(M)
+    F = eigfact!(W)
+    idx = sortperm(F[:values])[2:d+1]
+    return F[:values][idx], F[:vectors][:,idx]
+end
+
+function decompose{T}(A::AbstractMatrix{T}, B::AbstractMatrix{T}, d::Int)
+    AA = isa(A, AbstractSparseArray) ? Symmetric(full(A)) : Symmetric(A)
+    BB = isa(B, AbstractSparseArray) ? Symmetric(full(B)) : Symmetric(B)
+    F = eigfact(AA, BB)
+    idx = sortperm(F[:values])[2:d+1]
+    return F[:values][idx], F[:vectors][:,idx]
+end

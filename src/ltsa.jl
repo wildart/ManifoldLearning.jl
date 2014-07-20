@@ -1,12 +1,42 @@
-# Local tangent space alignment (LTSA)
+# Local Tangent Space Alignment (LTSA)
 # ---------------------------
 # Principal Manifolds and Nonlinear Dimension Reduction via Local Tangent Space Alignment,
 # Zhang, Zhenyue; Hongyuan Zha (2004),  SIAM Journal on Scientific Computing 26 (1): 313–338.
 # doi:10.1137/s1064827502419154.
 
-typealias LTSA DistSpectralResults
+#### LTSA type
+immutable LTSA <: SpectralResult
+    k::Int
+    λ::Vector{Float64}
+    proj::Projection
 
-function ltsa(X::Matrix; d::Int=2, k::Int=12)
+    LTSA(k::Int, λ::Vector{Float64}, proj::Projection) = new(k, λ, proj)
+end
+
+## properties
+indim(M::LTSA) = size(M.proj, 1)
+outdim(M::LTSA) = size(M.proj, 2)
+projection(M::LTSA) = M.proj
+
+eigvals(M::LTSA) = M.λ
+nneighbors(M::LTSA) = M.k
+
+## show & dump
+function show(io::IO, M::LTSA)
+    print(io, "LTSA(indim = $(indim(M)), outdim = $(outdim(M)), nneighbors = $(nneighbors(M)))")
+end
+
+function dump(io::IO, M::LTSA)
+    show(io, M)
+    println(io, "eigenvalues: ")
+    Base.showarray(io, M.λ', header=false, repr=false)
+    println(io)
+    println(io, "projection:")
+    Base.showarray(io, M.proj, header=false, repr=false)
+end
+
+## interface functions
+function fit(::Type{LTSA}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
     n = size(X, 2)
 
     # Construct NN graph
@@ -29,11 +59,6 @@ function ltsa(X::Matrix; d::Int=2, k::Int=12)
     end
 
     # Align global coordinates
-    # λ, E = eigs(B, nev=d+1, which="SA", tol=0.0)
-    # λi = sortperm(λ)[2:d+1]
-    # return LTSA(d, k, λ[λi], E[:, λi]')
-
-    F = eigfact!(Symmetric(full(B)))
-    λi = sortperm(F[:values])[2:d+1]
-    return LTSA(F[:vectors][:, λi]', F[:values][λi], k)
+    λ, V = decompose(B, d)
+    return LLE(k, λ, V')
 end

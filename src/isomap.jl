@@ -3,9 +3,48 @@
 # A Global Geometric Framework for Nonlinear Dimensionality Reduction,
 # J. B. Tenenbaum, V. de Silva and J. C. Langford, Science 290 (5500): 2319-2323, 22 December 2000
 
-typealias Isomap DistSpectralResults
+#### Isomap type
+immutable Isomap <: SpectralResult
+    k::Int
+    λ::Vector{Float64}
+    proj::Projection
+    component::Vector{Int}
 
-function isomap(X::Matrix; d::Int=2, k::Int=12)
+    Isomap(k::Int, λ::Vector{Float64}, proj::Projection) = new(k, λ, proj)
+    Isomap(k::Int, λ::Vector{Float64}, proj::Projection, cc::Vector{Int}) = new(k, λ, proj, cc)
+end
+
+## properties
+indim(M::Isomap) = size(M.proj, 1)
+outdim(M::Isomap) = size(M.proj, 2)
+projection(M::Isomap) = M.proj
+
+eigvals(M::Isomap) = M.λ
+nneighbors(M::Isomap) = M.k
+ccomponent(M::Isomap) = M.component
+
+## show & dump
+function show(io::IO, M::Isomap)
+    print(io, "Isomap(indim = $(indim(M)), outdim = $(outdim(M)), nneighbors = $(nneighbors(M)))")
+end
+
+function dump(io::IO, M::Isomap)
+    show(io, M)
+    # try # Print largest connected component
+    #     lcc = ccomponent(M)
+    #     println(io, "connected component: ")
+    #     Base.showarray(io, lcc', header=false, repr=false)
+    #     println(io)
+    # end
+    println(io, "eigenvalues: ")
+    Base.showarray(io, M.λ', header=false, repr=false)
+    println(io)
+    println(io, "projection:")
+    Base.showarray(io, M.proj, header=false, repr=false)
+end
+
+## interface functions
+function fit(::Type{Isomap}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
     # Construct NN graph
     D, E = find_nn(X, k)
 
@@ -46,5 +85,5 @@ function isomap(X::Matrix; d::Int=2, k::Int=12)
     U = U[:, indices]
     Y = real(U .* sqrt(λ)')
 
-    return Isomap(Y', real(λ), k, C)
+    return Isomap(k, real(λ), Y', C)
 end

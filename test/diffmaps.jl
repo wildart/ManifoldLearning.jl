@@ -1,8 +1,12 @@
-using ManifoldLearning
-using Base.Test
+module TestDiffMap
+	using ManifoldLearning
+	using Base.Test
 
-X, L = swiss_roll()
-I = diffusion_maps(X)
-@test size(I.Y, 1) == size(X, 1)-1
-@test size(I.Y, 2) == size(X, 2)
+	t = 1
+	X, L = swiss_roll()
+	I = fit(DiffMap, X, t=t)
+
+	@test indim(I) == d
+	@test outdim(I) == size(X, 2)
+end
 

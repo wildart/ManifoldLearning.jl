@@ -1,7 +1,14 @@
-using ManifoldLearning
-using Base.Test
+module TestLTSA
+	using ManifoldLearning
+	using Base.Test
 
-X, L = swiss_roll(2000)
-I = ltsa(X)
-@test indim(I) == size(X, 1)-1
-@test outdim(I) == size(X, 2)
+	k = 12
+	d = 2
+	X, L = swiss_roll()
+	I = fit(LTSA, X, k=k, d=d)
+
+	@test indim(I) == d
+	@test outdim(I) == size(X, 2)
+	@test nneighbors(I) == k
+	@test length(eigvals(I)) == d
+end

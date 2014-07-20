@@ -3,9 +3,39 @@
 # Nonlinear dimensionality reduction by locally linear embedding,
 # Roweis, S. & Saul, L., Science 290:2323 (2000)
 
-typealias LLE DistSpectralResults
+#### LLE type
+immutable LLE <: SpectralResult
+    k::Int
+    λ::Vector{Float64}
+    proj::Projection
 
-function lle(X::Matrix; d::Int=2, k::Int=12)
+    LLE(k::Int, λ::Vector{Float64}, proj::Projection) = new(k, λ, proj)
+end
+
+## properties
+indim(M::LLE) = size(M.proj, 1)
+outdim(M::LLE) = size(M.proj, 2)
+projection(M::LLE) = M.proj
+
+eigvals(M::LLE) = M.λ
+nneighbors(M::LLE) = M.k
+
+## show & dump
+function show(io::IO, M::LLE)
+    print(io, "LLE(indim = $(indim(M)), outdim = $(outdim(M)), nneighbors = $(nneighbors(M)))")
+end
+
+function dump(io::IO, M::LLE)
+    show(io, M)
+    println(io, "eigenvalues: ")
+    Base.showarray(io, M.λ', header=false, repr=false)
+    println(io)
+    println(io, "projection:")
+    Base.showarray(io, M.proj, header=false, repr=false)
+end
+
+## interface functions
+function fit(::Type{LLE}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
     n = size(X, 2)
 
     # Construct NN graph
@@ -55,10 +85,6 @@ function lle(X::Matrix; d::Int=2, k::Int=12)
         M[jj,jj] = M[jj,jj] + w*w'
     end
 
-    #λ, U = eigs(M, nev=d+1) # only for sparse
-    λ, U = eig(M)
-    λ = λ[2:(d+1)] # get bottom (smallest) eigenvalues (discard first)
-    Y = U[:,2:(d+1)]'*sqrt(n)
-
-    return LLE(Y, λ, k, c)
+    λ, V = decompose(M, d)
+    return LLE(k, λ, V' .* sqrt(n))
 end
