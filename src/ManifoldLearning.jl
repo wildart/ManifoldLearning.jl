@@ -1,37 +1,31 @@
 module ManifoldLearning
 
+    using StatsBase
+    using MultivariateStats
+
     import Base: show, dump, eigvals
+    import MultivariateStats: outdim, projection, transform
 
     export
 
     ## common
-    indim,              # the input dimension of a model
-    outdim,             # the output dimension of a model
+    outdim,             # the output dimension of the transformation
     projection,         # the projection matrix
-    fit,
-
-    # Isomap
-    Isomap,             # Type: Isomap model
-
-    eigvals,            # eigenvalues from spectral analysis
-    nneighbors,         # the number of nearest neighbors used for building local coordinates
+    eigvals,            # eigenvalues from the spectral analysis
+    neighbors,          # the number of nearest neighbors used for building local structure
     ccomponent,         # point indexes of the largest connected component
 
-    # HLLE
+    transform,          # perform the manifold learning
+
+    # Transformation types
+    Isomap,             # Type: Isomap model
     HLLE,               # Type: Hessian Eigenmaps model
-
-    # LLE
     LLE,                # Type: Locally Linear Embedding model
-
-    # LTSA
     LTSA,               # Type: Local Tangent Space Alignment model
-
-    # LEM
     LEM,                # Type: Laplacian Eigenmaps model
-
-    # Diffusion maps
     DiffMap,            # Type: Diffusion maps model
 
+    # example dataset
     swiss_roll          # swiss roll dataset generator
 
     include("types.jl")

@@ -10,17 +10,16 @@ immutable DiffMap <: SpectralResult
     K::Matrix{Float64}
     proj::Projection
 
-    DiffMap(t::Int, σ::Float64, K::Matrix{Float64}, proj::Projection) = new(k, σ, K, proj)
+    DiffMap(t::Int, σ::Float64, K::Matrix{Float64}, proj::Projection) = new(t, σ, K, proj)
 end
 
 ## properties
-indim(M::DiffMap) = size(M.proj, 1)
-outdim(M::DiffMap) = size(M.proj, 2)
+outdim(M::DiffMap) = size(M.proj, 1)
 projection(M::DiffMap) = M.proj
 
 ## show & dump
 function show(io::IO, M::DiffMap)
-    print(io, "Diffusion Maps(indim = $(indim(M)), outdim = $(outdim(M)), t = $(M.t), σ = $(M.σ))")
+    print(io, "Diffusion Maps(outdim = $(outdim(M)), t = $(M.t), σ = $(M.σ))")
 end
 
 function dump(io::IO, M::DiffMap)
@@ -29,15 +28,15 @@ function dump(io::IO, M::DiffMap)
     Base.showarray(io, M.K, header=false, repr=false)
     println(io)
     println(io, "projection:")
-    Base.showarray(io, M.proj, header=false, repr=false)
+    Base.showarray(io, projection(M), header=false, repr=false)
 end
 
 ## interface functions
-function fit(::Type{DiffMap}, X::DenseMatrix{Float64}; d::Int=2, t::Int=1, σ::Float64=1.0)
-    X = minmax_normalization(X)
+function transform(::Type{DiffMap}, X::DenseMatrix{Float64}; d::Int=2, t::Int=1, σ::Float64=1.0)
+    transform!(fit(UnitRangeTransform, X), X)
 
     sumX = sum(X.^ 2, 1)
-    K = exp(( sumX' .+ sumX .- 2*At_mul_B(X,X) ) ./ (2*sigma^2))
+    K = exp(( sumX' .+ sumX .- 2*At_mul_B(X,X) ) ./ (2*σ^2))
 
     p = sum(K, 1)'
     K ./= ((p * p') .^ t)

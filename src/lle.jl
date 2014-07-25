@@ -13,16 +13,15 @@ immutable LLE <: SpectralResult
 end
 
 ## properties
-indim(M::LLE) = size(M.proj, 1)
-outdim(M::LLE) = size(M.proj, 2)
+outdim(M::LLE) = size(M.proj, 1)
 projection(M::LLE) = M.proj
 
 eigvals(M::LLE) = M.λ
-nneighbors(M::LLE) = M.k
+neighbors(M::LLE) = M.k
 
 ## show & dump
 function show(io::IO, M::LLE)
-    print(io, "LLE(indim = $(indim(M)), outdim = $(outdim(M)), nneighbors = $(nneighbors(M)))")
+    print(io, "LLE(indim = $(indim(M)), outdim = $(outdim(M)), neighbors = $(neighbors(M)))")
 end
 
 function dump(io::IO, M::LLE)
@@ -35,7 +34,7 @@ function dump(io::IO, M::LLE)
 end
 
 ## interface functions
-function fit(::Type{LLE}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
+function transform(::Type{LLE}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
     n = size(X, 2)
 
     # Construct NN graph
@@ -76,7 +75,7 @@ function fit(::Type{LLE}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
     end
 
     # Compute embedding
-    M = eye(n,n) # speye(n,n)
+    M = speye(n,n)
     for i = 1 : n
         w = W[:, i]
         jj = E[:, i]
@@ -86,5 +85,5 @@ function fit(::Type{LLE}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
     end
 
     λ, V = decompose(M, d)
-    return LLE(k, λ, V' .* sqrt(n))
+    return LLE(k, λ, scale!(V', sqrt(n)))
 end

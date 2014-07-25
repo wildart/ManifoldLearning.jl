@@ -13,16 +13,15 @@ immutable HLLE <: SpectralResult
 end
 
 ## properties
-indim(M::HLLE) = size(M.proj, 1)
-outdim(M::HLLE) = size(M.proj, 2)
+outdim(M::HLLE) = size(M.proj, 1)
 projection(M::HLLE) = M.proj
 
 eigvals(M::HLLE) = M.λ
-nneighbors(M::HLLE) = M.k
+neighbors(M::HLLE) = M.k
 
 ## show & dump
 function show(io::IO, M::HLLE)
-    print(io, "Hessian Eigenmaps(indim = $(indim(M)), outdim = $(outdim(M)), nneighbors = $(nneighbors(M)))")
+    print(io, "Hessian Eigenmaps(outdim = $(outdim(M)), neighbors = $(neighbors(M)))")
 end
 
 function dump(io::IO, M::HLLE)
@@ -35,7 +34,7 @@ function dump(io::IO, M::HLLE)
 end
 
 ## interface functions
-function fit(::Type{HLLE}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
+function transform(::Type{HLLE}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
     n = size(X, 2)
 
     # Identify neighbors

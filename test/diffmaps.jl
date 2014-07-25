@@ -4,9 +4,9 @@ module TestDiffMap
 
 	t = 1
 	X, L = swiss_roll()
-	I = fit(DiffMap, X, t=t)
+	Y = transform(DiffMap, X, t=t)
 
-	@test indim(I) == d
-	@test outdim(I) == size(X, 2)
+	@test outdim(Y) == d
+	@test size(projection(Y), 2) == size(X, 2)
 end
 

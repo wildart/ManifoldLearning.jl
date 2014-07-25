@@ -14,16 +14,15 @@ immutable LTSA <: SpectralResult
 end
 
 ## properties
-indim(M::LTSA) = size(M.proj, 1)
-outdim(M::LTSA) = size(M.proj, 2)
+outdim(M::LTSA) = size(M.proj, 1)
 projection(M::LTSA) = M.proj
 
 eigvals(M::LTSA) = M.λ
-nneighbors(M::LTSA) = M.k
+neighbors(M::LTSA) = M.k
 
 ## show & dump
 function show(io::IO, M::LTSA)
-    print(io, "LTSA(indim = $(indim(M)), outdim = $(outdim(M)), nneighbors = $(nneighbors(M)))")
+    print(io, "LTSA(outdim = $(outdim(M)), neighbors = $(neighbors(M)))")
 end
 
 function dump(io::IO, M::LTSA)
@@ -36,7 +35,7 @@ function dump(io::IO, M::LTSA)
 end
 
 ## interface functions
-function fit(::Type{LTSA}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
+function transform(::Type{LTSA}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
     n = size(X, 2)
 
     # Construct NN graph
@@ -55,10 +54,10 @@ function fit(::Type{LTSA}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
 
         # Construct alignment matrix
         G = hcat(ones(k)./sqrt(k), H)
-        B[I[:,i], I[:,i]] =  eye(k) - G*G'
+        B[I[:,i], I[:,i]] =  B[I[:,i], I[:,i]] + eye(k) - G*G'
     end
 
     # Align global coordinates
     λ, V = decompose(B, d)
-    return LLE(k, λ, V')
+    return LTSA(k, λ, V')
 end

@@ -6,26 +6,23 @@
 #### Isomap type
 immutable Isomap <: SpectralResult
     k::Int
-    λ::Vector{Float64}
     proj::Projection
     component::Vector{Int}
 
-    Isomap(k::Int, λ::Vector{Float64}, proj::Projection) = new(k, λ, proj)
-    Isomap(k::Int, λ::Vector{Float64}, proj::Projection, cc::Vector{Int}) = new(k, λ, proj, cc)
+    Isomap(k::Int, proj::Projection) = new(k, proj)
+    Isomap(k::Int, proj::Projection, cc::Vector{Int}) = new(k, proj, cc)
 end
 
 ## properties
-indim(M::Isomap) = size(M.proj, 1)
-outdim(M::Isomap) = size(M.proj, 2)
+outdim(M::Isomap) = size(M.proj, 1)
 projection(M::Isomap) = M.proj
 
-eigvals(M::Isomap) = M.λ
-nneighbors(M::Isomap) = M.k
+neighbors(M::Isomap) = M.k
 ccomponent(M::Isomap) = M.component
 
 ## show & dump
 function show(io::IO, M::Isomap)
-    print(io, "Isomap(indim = $(indim(M)), outdim = $(outdim(M)), nneighbors = $(nneighbors(M)))")
+    print(io, "Isomap(outdim = $(outdim(M)), neighbors = $(neighbors(M)))")
 end
 
 function dump(io::IO, M::Isomap)
@@ -44,7 +41,7 @@ function dump(io::IO, M::Isomap)
 end
 
 ## interface functions
-function fit(::Type{Isomap}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
+function transform(::Type{Isomap}, X::DenseMatrix{Float64}; k::Int=12, d::Int=2)
     # Construct NN graph
     D, E = find_nn(X, k)
 
@@ -75,15 +72,7 @@ function fit(::Type{Isomap}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
     end
 
     # Perform MDS
-    M = DD.^2
-    B = (M .- sum(M, 1) ./ n .- sum(M, 2) ./ n .+ sum(M) ./ (n^2)) .* -0.5
+    Y = classical_mds(DD, d)
 
-    # Compute embedding
-    λ, U = eig(B)
-    indices = find(!(imag(λ) .< 0.0) .* !(imag(λ) .> 0.0) .* real(λ) .> 0)[1:d]
-    λ = λ[indices]
-    U = U[:, indices]
-    Y = real(U .* sqrt(λ)')
-
-    return Isomap(k, real(λ), Y', C)
+    return Isomap(k, Y, C)
 end

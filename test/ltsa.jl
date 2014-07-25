@@ -5,10 +5,10 @@ module TestLTSA
 	k = 12
 	d = 2
 	X, L = swiss_roll()
-	I = fit(LTSA, X, k=k, d=d)
+	Y = transform(LTSA, X; k=k, d=d)
 
-	@test indim(I) == d
-	@test outdim(I) == size(X, 2)
-	@test nneighbors(I) == k
-	@test length(eigvals(I)) == d
+	@test outdim(Y) == d
+	@test size(projection(Y), 2) == size(X, 2)
+	@test neighbors(Y) == k
+	@test length(eigvals(Y)) == d
 end

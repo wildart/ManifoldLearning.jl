@@ -5,11 +5,11 @@ module TestLEM
 	k = 12
 	d = 2
 	X, L = swiss_roll()
-	I = fit(LEM, X, k=k, d=d)
+	Y = transform(LEM, X, k=k, d=d)
 
-	@test indim(I) == d
-	@test outdim(I) == size(X, 2)
-	@test nneighbors(I) == k
-	@test length(eigvals(I)) == d
-	@test length(ccomponent(I)) > 1
+	@test outdim(Y) == d
+	@test size(projection(Y), 2) == size(X, 2)
+	@test neighbors(Y) == k
+	@test length(eigvals(Y)) == d
+	@test length(ccomponent(Y)) > 1
 end

@@ -16,17 +16,16 @@ immutable LEM <: SpectralResult
 end
 
 ## properties
-indim(M::LEM) = size(M.proj, 1)
-outdim(M::LEM) = size(M.proj, 2)
+outdim(M::LEM) = size(M.proj, 1)
 projection(M::LEM) = M.proj
 
 eigvals(M::LEM) = M.λ
-nneighbors(M::LEM) = M.k
+neighbors(M::LEM) = M.k
 ccomponent(M::LEM) = M.component
 
 ## show & dump
 function show(io::IO, M::LEM)
-    print(io, "Laplacian Eigenmaps(indim = $(indim(M)), outdim = $(outdim(M)), nneighbors = $(nneighbors(M)), σ = $(M.σ))")
+    print(io, "Laplacian Eigenmaps(outdim = $(outdim(M)), neighbors = $(neighbors(M)), σ = $(M.σ))")
 end
 
 function dump(io::IO, M::Isomap)
@@ -45,7 +44,7 @@ function dump(io::IO, M::Isomap)
 end
 
 ## interface functions
-function fit(::Type{LEM}, X::DenseMatrix{Float64};
+function transform(::Type{LEM}, X::DenseMatrix{Float64};
              d::Int=2, k::Int=12, σ::Float64=1.0)
     n = size(X, 2)
 
