@@ -7,12 +7,12 @@
 immutable LEM <: SpectralResult
     k::Int
     λ::Vector{Float64}
-    σ::Float64
+    t::Float64
     proj::Projection
     component::Vector{Int}
 
-    LEM(k::Int, λ::Vector{Float64}, σ::Float64, proj::Projection) = new(k, λ, σ, proj)
-    LEM(k::Int, λ::Vector{Float64}, σ::Float64, proj::Projection, cc::Vector{Int}) = new(k, λ, σ, proj, cc)
+    LEM(k::Int, λ::Vector{Float64}, t::Float64, proj::Projection) = new(k, λ, t, proj)
+    LEM(k::Int, λ::Vector{Float64}, t::Float64, proj::Projection, cc::Vector{Int}) = new(k, λ, t, proj, cc)
 end
 
 ## properties
@@ -25,7 +25,7 @@ ccomponent(M::LEM) = M.component
 
 ## show & dump
 function show(io::IO, M::LEM)
-    print(io, "Laplacian Eigenmaps(outdim = $(outdim(M)), neighbors = $(neighbors(M)), σ = $(M.σ))")
+    print(io, "Laplacian Eigenmaps(outdim = $(outdim(M)), neighbors = $(neighbors(M)), t = $(M.t))")
 end
 
 function dump(io::IO, M::Isomap)
@@ -45,7 +45,7 @@ end
 
 ## interface functions
 function transform(::Type{LEM}, X::DenseMatrix{Float64};
-             d::Int=2, k::Int=12, σ::Float64=1.0)
+             d::Int=2, k::Int=12, t::Float64=1.0)
     n = size(X, 2)
 
     # Construct NN graph
@@ -65,16 +65,10 @@ function transform(::Type{LEM}, X::DenseMatrix{Float64};
     #W = W[C,C]
 
     # Compute weights
-    W[W .> eps(Float64)] = exp(-W[W .> eps(Float64)] ./ (2*σ^2))
+    W[W .> eps(Float64)] = exp(-W[W .> eps(Float64)] ./ t)
     D = diagm(sum(W,2)[:])
     L = D - W
 
-    # Build eigenmaps
-    # λ, U = eig(L, D)
-    # λ = real(λ)[2:(d+1)]
-    # Y = real(U)[:,2:(d+1)]
-    # return Eigenmap(Y', λ, k, C, σ)
-
     λ, V = decompose(L, D, d)
-    return LEM(k, λ, σ, V', C)
+    return LEM(k, λ, t, V', C)
 end

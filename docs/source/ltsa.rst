@@ -27,8 +27,8 @@ Let ``M`` be an instance of ``LTSA``, ``n`` be the number of observations, and `
     The eigenvalues of alignment matrix.
 
 
-Data Analysis
-~~~~~~~~~~~~~~~
+Data Transformation
+~~~~~~~~~~~~~~~~~~~
 
 One can use the ``transform`` method to perform LTSA over a given dataset.
 

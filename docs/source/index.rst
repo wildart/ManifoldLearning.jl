@@ -2,9 +2,9 @@
 Welcome to ManifoldLearning's documentation
 =============================================
 
-*ManifoldLearning.jl* is a Julia package for manifold learning and non-linear dimensionality reduction. It proides set of nonlinear dimensionality reduction techniques, such as Isomap, LLE, LTSA, etc.
+*ManifoldLearning.jl* is a Julia package for manifold learning and non-linear dimensionality reduction. It proides set of nonlinear dimensionality reduction methods, such as :doc:`Isomap <isomap>`, :doc:`LLE <lle>`, :doc:`LTSA <ltsa>`, etc.
 
-**Contents:**
+**Methods:**
 
 .. toctree::
    :maxdepth: 1

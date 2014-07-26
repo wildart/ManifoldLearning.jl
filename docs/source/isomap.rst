@@ -27,8 +27,8 @@ Let ``M`` be an instance of ``Isomap``, ``n`` be the number of observations, and
     The observations index array of the largest connected component of the distance matrix.
 
 
-Data Analysis
-~~~~~~~~~~~~~~~
+Data Transformation
+~~~~~~~~~~~~~~~~~~~
 
 One can use the ``transform`` method to perform Isomap over a given dataset.
 
