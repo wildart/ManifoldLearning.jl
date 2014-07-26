@@ -63,4 +63,4 @@ One can use the ``transform`` method to perform LEM over a given dataset.
     Y = transform(LEM, X; k = 12, d = 2, t = 1.0)
 
 .. rubric:: References
-.. [#R1] Belkin, M. and Niyogi, P. "Laplacian Eigenmaps for Dimensionality Reduction and Data Representation". Neural Computation, June 2003; 15 (6):1373-1396
+.. [#R1] Belkin, M. and Niyogi, P. "Laplacian Eigenmaps for Dimensionality Reduction and Data Representation". Neural Computation, June 2003; 15 (6):1373-1396. DOI:`10.1162/089976603321780317 <http://dx.doi.org/doi:10.1162/089976603321780317>`_
