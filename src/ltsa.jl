@@ -5,12 +5,12 @@
 # doi:10.1137/s1064827502419154.
 
 #### LTSA type
-immutable LTSA <: SpectralResult
+immutable LTSA{T <: Real} <: SpectralResult
     k::Int
-    λ::Vector{Float64}
-    proj::Projection
+    λ::AbstractVector{T}
+    proj::Projection{T}
 
-    LTSA(k::Int, λ::Vector{Float64}, proj::Projection) = new(k, λ, proj)
+    LTSA{T}(k::Int, λ::AbstractVector{T}, proj::Projection{T}) = new(k, λ, proj)
 end
 
 ## properties
@@ -35,7 +35,7 @@ function dump(io::IO, M::LTSA)
 end
 
 ## interface functions
-function transform(::Type{LTSA}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
+function transform{T<:Real}(::Type{LTSA}, X::DenseMatrix{T}; d::Int=2, k::Int=12)
     n = size(X, 2)
 
     # Construct NN graph
@@ -49,15 +49,13 @@ function transform(::Type{LTSA}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
 
         # Compute orthogonal basis H of θ'
         θ_t = svdfact(δ_x)[:V][:,1:d]
-        #θ_t = (svdfact(δ_x)[:U][:,1:d]'*δ_x)'
-        H = full(qrfact(θ_t)[:Q])
 
         # Construct alignment matrix
-        G = hcat(ones(k)./sqrt(k), H)
+        G = hcat(ones(k)./sqrt(k), θ_t)
         B[I[:,i], I[:,i]] =  B[I[:,i], I[:,i]] + eye(k) - G*G'
     end
 
     # Align global coordinates
     λ, V = decompose(B, d)
-    return LTSA(k, λ, V')
+    return LTSA{T}(k, λ, V')
 end

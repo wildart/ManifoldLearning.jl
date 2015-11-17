@@ -2,13 +2,13 @@ abstract AbstractResult
 
 abstract SpectralResult <: AbstractResult
 
-typealias Projection Matrix{Float64}
+typealias Projection{T <: Real} AbstractMatrix{T}
 
-type Diffmap
+type Diffmap{T <: Real}
     d::Int
     t::Int
-    K::Matrix{Float64}
-    Y::Matrix{Float64}
+    K::AbstractMatrix{T}
+    Y::AbstractMatrix{T}
 end
 
 function Base.show(io::IO, res::Diffmap)

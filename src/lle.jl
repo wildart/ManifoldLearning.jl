@@ -4,12 +4,12 @@
 # Roweis, S. & Saul, L., Science 290:2323 (2000)
 
 #### LLE type
-immutable LLE <: SpectralResult
+immutable LLE{T <: Real} <: SpectralResult
     k::Int
-    λ::Vector{Float64}
-    proj::Projection
+    λ::AbstractVector{T}
+    proj::Projection{T}
 
-    LLE(k::Int, λ::Vector{Float64}, proj::Projection) = new(k, λ, proj)
+    LLE{T}(k::Int, λ::AbstractVector{T}, proj::Projection{T}) = new(k, λ, proj)
 end
 
 ## properties
@@ -34,7 +34,7 @@ function dump(io::IO, M::LLE)
 end
 
 ## interface functions
-function transform(::Type{LLE}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
+function transform{T<:Real}(::Type{LLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12)
     n = size(X, 2)
 
     # Construct NN graph
@@ -85,5 +85,5 @@ function transform(::Type{LLE}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
     end
 
     λ, V = decompose(M, d)
-    return LLE(k, λ, scale!(V', sqrt(n)))
+    return LLE{T}(k, λ, scale!(V', sqrt(n)))
 end

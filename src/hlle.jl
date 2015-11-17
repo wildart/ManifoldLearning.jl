@@ -4,12 +4,12 @@
 # D. Donoho and C. Grimes, Proc Natl Acad Sci U S A. 2003 May 13; 100(10): 5591–5596
 
 #### HLLE type
-immutable HLLE <: SpectralResult
+immutable HLLE{T <: Real} <: SpectralResult
     k::Int
-    λ::Vector{Float64}
-    proj::Projection
+    λ::AbstractVector{T}
+    proj::Projection{T}
 
-    HLLE(k::Int, λ::Vector{Float64}, proj::Projection) = new(k, λ, proj)
+    HLLE{T}(k::Int, λ::AbstractVector{T}, proj::Projection{T}) = new(k, λ, proj)
 end
 
 ## properties
@@ -34,14 +34,14 @@ function dump(io::IO, M::HLLE)
 end
 
 ## interface functions
-function transform(::Type{HLLE}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
+function transform{T<:Real}(::Type{HLLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12)
     n = size(X, 2)
 
     # Identify neighbors
     D, I = find_nn(X, k)
 
     # Obtain tangent coordinates and develop Hessian estimator
-    hs = int(d*(d+1)/2)
+    hs = Int(d*(d+1)/2)
     W = spzeros(hs*n,n)
     for i=1:n
         # re-center points in neighborhood
@@ -68,5 +68,5 @@ function transform(::Type{HLLE}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
 
     # decomposition
     λ, V = decompose(W'*W, d)
-    return HLLE(k, λ, V' .* sqrt(n))
+    return HLLE{T}(k, λ, V' .* sqrt(n))
 end

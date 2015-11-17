@@ -6,9 +6,14 @@ module TestUtils
 	X = rand(3, 15)
 
 	# test k-nn graph
+	D, E = ManifoldLearning.find_nn(X, k, excluding=false)
+	@test size(X,2) == size(D,2) && size(D, 1)-1 == k
+	@test size(X,2) == size(E,2) && size(E, 1)-1 == k
+
 	D, E = ManifoldLearning.find_nn(X, k)
 	@test size(X,2) == size(D,2) && size(D, 1) == k
 	@test size(X,2) == size(E,2) && size(E, 1) == k
+
 
 	# test connected components
 	CC = ManifoldLearning.components(E)

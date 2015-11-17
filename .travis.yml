@@ -1,19 +1,18 @@
-language: cpp
-compiler:
-  - clang
+language: julia
+os:
+    - osx
+    - linux
+julia:
+    - 0.4
+    - nightly
 notifications:
-  email: false
-env:
-  matrix:
-    - JULIAVERSION="julianightlies"
-before_install:
-  - sudo add-apt-repository ppa:staticfloat/julia-deps -y
-  - sudo add-apt-repository ppa:staticfloat/${JULIAVERSION} -y
-  - sudo apt-get update -qq -y
-  - sudo apt-get install libpcre3-dev julia -y
-  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+    email: false
+matrix:
+  allow_failures:
+    - julia: nightly
 script:
-  - julia -e 'Pkg.init(); Pkg.clone(pwd())'
-  - julia --code-coverage test/runtests.jl
+    - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+    - julia -e 'Pkg.clone(pwd()); Pkg.build("ManifoldLearning"); Pkg.test("ManifoldLearning"; coverage=true)';
 after_success:
-  - julia -e 'cd(Pkg.dir("ManifoldLearning")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
+    - julia -e 'cd(Pkg.dir("ManifoldLearning")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())';
+

@@ -4,13 +4,13 @@
 # Coifman, R. & Lafon, S., Applied and Computational Harmonic Analysis, Elsevier, 2006, 21, 5-30
 
 #### DiffMap type
-immutable DiffMap <: SpectralResult
+immutable DiffMap{T <: Real} <: SpectralResult
     t::Int
     ɛ::Float64
-    K::Matrix{Float64}
-    proj::Projection
+    K::AbstractMatrix{T}
+    proj::Projection{T}
 
-    DiffMap(t::Int, ɛ::Float64, K::Matrix{Float64}, proj::Projection) = new(t, ɛ, K, proj)
+    DiffMap{T}(t::Int, ɛ::T, K::AbstractMatrix{T}, proj::Projection{T}) = new(t, ɛ, K, proj)
 end
 
 ## properties
@@ -33,7 +33,7 @@ function dump(io::IO, M::DiffMap)
 end
 
 ## interface functions
-function transform(::Type{DiffMap}, X::DenseMatrix{Float64}; d::Int=2, t::Int=1, ɛ::Float64=1.0)
+function transform{T<:Real}(::Type{DiffMap}, X::DenseMatrix{T}; d::Int=2, t::Int=1, ɛ::T=1.0)
     transform!(fit(UnitRangeTransform, X), X)
 
     sumX = sum(X.^ 2, 1)
@@ -48,5 +48,5 @@ function transform(::Type{DiffMap}, X::DenseMatrix{Float64}; d::Int=2, t::Int=1,
     U ./= U[:,1]
     Y = U[:,2:(d+1)]
 
-    return DiffMap(t, ɛ, K, Y')
+    return DiffMap{T}(t, ɛ, K, Y')
 end
