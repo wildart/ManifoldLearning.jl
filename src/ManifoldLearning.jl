@@ -1,5 +1,6 @@
 module ManifoldLearning
 
+    using StatsBase
     using MultivariateStats
 
     import Base: show, dump, eigvals
@@ -29,7 +30,6 @@ module ManifoldLearning
 
     include("types.jl")
     include("utils.jl")
-    include("transformations.jl")
     include("isomap.jl")
     include("hlle.jl")
     include("lle.jl")

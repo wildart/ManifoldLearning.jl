@@ -4,12 +4,12 @@
 # Roweis, S. & Saul, L., Science 290:2323 (2000)
 
 #### LLE type
-immutable LLE{T <: Real} <: SpectralResult
+immutable LLE <: SpectralResult
     k::Int
-    λ::AbstractVector{T}
-    proj::Projection{T}
+    λ::Vector{Float64}
+    proj::Projection
 
-    LLE{T}(k::Int, λ::AbstractVector{T}, proj::Projection{T}) = new(k, λ, proj)
+    LLE(k::Int, λ::Vector{Float64}, proj::Projection) = new(k, λ, proj)
 end
 
 ## properties
@@ -34,7 +34,7 @@ function dump(io::IO, M::LLE)
 end
 
 ## interface functions
-function transform{T<:Real}(::Type{LLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12)
+function transform(::Type{LLE}, X::DenseMatrix{Float64}; d::Int=2, k::Int=12)
     n = size(X, 2)
 
     # Construct NN graph
@@ -76,14 +76,25 @@ function transform{T<:Real}(::Type{LLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12)
 
     # Compute embedding
     M = speye(n,n)
+
     for i = 1 : n
         w = W[:, i]
         jj = E[:, i]
-        M[i,jj] = M[i,jj] - w'
-        M[jj,i] = M[jj,i] - w
-        M[jj,jj] = M[jj,jj] + w*w'
+        #M[i,jj] = M[i,jj] - w'#Dimension error  slice
+        #M[jj,i] = M[jj,i] - w
+        #M[jj,jj] = M[jj,jj] + w*w'
+        wx=w*w'
+        for ix=1:length(jj)
+          M[i,jj[ix]]=M[i,jj[ix]]-w'[ix]
+          M[jj[ix],i]=M[jj[ix],i]-w[ix]
+        end
+        for ix=1:length(jj)
+          for iy=1:length(jj)
+            @inbounds M[jj[ix],jj[iy]]=M[jj[ix],jj[iy]]+wx[ix,iy]
+          end
+        end
     end
 
     λ, V = decompose(M, d)
-    return LLE{T}(k, λ, scale!(V', sqrt(n)))
+    return LLE(k, λ, scale!(V', sqrt(n)))
 end
