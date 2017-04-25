@@ -4,15 +4,15 @@
 # M. Belkin, P. Niyogi, Neural Computation, June 2003; 15 (6):1373-1396
 
 #### LEM type
-immutable LEM{T <: Real} <: SpectralResult
+immutable LEM <: SpectralResult
     k::Int
-    λ::AbstractVector{T}
-    t::T
-    proj::Projection{T}
+    λ::Vector{Float64}
+    t::Float64
+    proj::Projection
     component::Vector{Int}
 
-    LEM{T}(k::Int, λ::AbstractVector{T}, t::T, proj::Projection{T}) = new(k, λ, t, proj)
-    LEM{T}(k::Int, λ::AbstractVector{T}, t::Float64, proj::Projection{T}, cc::Vector{Int}) = new(k, λ, t, proj, cc)
+    LEM(k::Int, λ::Vector{Float64}, t::Float64, proj::Projection) = new(k, λ, t, proj)
+    LEM(k::Int, λ::Vector{Float64}, t::Float64, proj::Projection, cc::Vector{Int}) = new(k, λ, t, proj, cc)
 end
 
 ## properties
@@ -30,6 +30,12 @@ end
 
 function dump(io::IO, M::Isomap)
     show(io, M)
+    # try # Print largest connected component
+    #     lcc = ccomponent(M)
+    #     println(io, "connected component: ")
+    #     Base.showarray(io, lcc', header=false, repr=false)
+    #     println(io)
+    # end
     println(io, "eigenvalues: ")
     Base.showarray(io, eigvals(M)', header=false, repr=false)
     println(io)
@@ -38,13 +44,14 @@ function dump(io::IO, M::Isomap)
 end
 
 ## interface functions
-function transform{T<:Real}(::Type{LEM}, X::DenseMatrix{T}; d::Int=2, k::Int=12, t::T=1.0)
+function transform(::Type{LEM}, X::DenseMatrix{Float64};
+             d::Int=2, k::Int=12, t::Float64=1.0)
     n = size(X, 2)
 
     # Construct NN graph
     D, E = find_nn(X, k)
 
-    W = zeros(T,n,n)
+    W = zeros(Float64,n,n)
     for i = 1 : n
         jj = E[:, i]
         W[i,jj] = D[:, i]
@@ -55,12 +62,13 @@ function transform{T<:Real}(::Type{LEM}, X::DenseMatrix{T}; d::Int=2, k::Int=12,
     # Select largest connected component
     CC = components(E)
     C = length(CC) == 1 ? CC[1] : CC[indmax(map(size, CC))]
+    #W = W[C,C]
 
     # Compute weights
-    W[W .> eps(T)] = exp(-W[W .> eps(T)] ./ t)
+    W[W .> eps(Float64)] = exp(-W[W .> eps(Float64)] ./ t)
     D = diagm(sum(W,2)[:])
     L = D - W
 
     λ, V = decompose(L, D, d)
-    return LEM{T}(k, λ, t, V', C)
+    return LEM(k, λ, t, V', C)
 end

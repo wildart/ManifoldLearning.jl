@@ -4,13 +4,13 @@
 # J. B. Tenenbaum, V. de Silva and J. C. Langford, Science 290 (5500): 2319-2323, 22 December 2000
 
 #### Isomap type
-immutable Isomap{T <: Real} <: SpectralResult
+immutable Isomap <: SpectralResult
     k::Int
-    proj::Projection{T}
-    component::AbstractVector{Int}
+    proj::Projection
+    component::Vector{Int}
 
-    Isomap{T}(k::Int, proj::Projection{T}) = new(k, proj)
-    Isomap{T}(k::Int, proj::Projection{T}, cc::AbstractVector{Int}) = new(k, proj, cc)
+    Isomap(k::Int, proj::Projection) = new(k, proj)
+    Isomap(k::Int, proj::Projection, cc::Vector{Int}) = new(k, proj, cc)
 end
 
 ## properties
@@ -41,9 +41,9 @@ function dump(io::IO, M::Isomap)
 end
 
 ## interface functions
-function transform{T <: Real}(::Type{Isomap}, X::DenseMatrix{T}; k::Int=12, d::Int=2)
+function transform(::Type{Isomap}, X::DenseMatrix{Float64}; k::Int=12, d::Int=2)
     # Construct NN graph
-    D, E = find_nn(X, k, excluding=false)
+    D, E = find_nn(X, k)
 
     # Select largest connected component
     CC = components(E)
@@ -74,5 +74,5 @@ function transform{T <: Real}(::Type{Isomap}, X::DenseMatrix{T}; k::Int=12, d::I
     # Perform MDS
     Y = classical_mds(DD, d)
 
-    return Isomap{T}(k, Y, C)
+    return Isomap(k, Y, C)
 end

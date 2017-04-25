@@ -1,11 +1,10 @@
 my_tests = ["utils.jl",
-            "transformations.jl",
             "isomap.jl",
             "lle.jl",
             "hlle.jl",
             "ltsa.jl",
-            "lem.jl",
-            "diffmaps.jl"]
+            "lem.jl"]
+            # "diffmaps.jl"]
 
 println("Running tests:")
 
