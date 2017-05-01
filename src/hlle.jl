@@ -41,7 +41,7 @@ function transform{T<:Real}(::Type{HLLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12
     D, I = find_nn(X, k)
 
     # Obtain tangent coordinates and develop Hessian estimator
-    hs = Int(d*(d+1)/2)
+    hs = round(d*(d+1)/2)
     W = spzeros(hs*n,n)
     for i=1:n
         # re-center points in neighborhood
