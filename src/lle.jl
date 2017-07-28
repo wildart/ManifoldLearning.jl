@@ -4,12 +4,12 @@
 # Roweis, S. & Saul, L., Science 290:2323 (2000)
 
 #### LLE type
-immutable LLE{T <: Real} <: SpectralResult
+struct LLE{T <: AbstractFloat} <: SpectralResult
     k::Int
     λ::AbstractVector{T}
     proj::Projection{T}
 
-    LLE{T}(k::Int, λ::AbstractVector{T}, proj::Projection{T}) = new(k, λ, proj)
+    LLE{T}(k::Int, λ::AbstractVector{T}, proj::Projection{T})  where T = new(k, λ, proj)
 end
 
 ## properties
@@ -34,7 +34,7 @@ function dump(io::IO, M::LLE)
 end
 
 ## interface functions
-function transform{T<:Real}(::Type{LLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12)
+function transform{T<:AbstractFloat}(::Type{LLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12)
     n = size(X, 2)
 
     # Construct NN graph
@@ -48,7 +48,7 @@ function transform{T<:Real}(::Type{LLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12)
     else
         c = cc[indmax(map(size, cc))]
         # renumber edges
-        R = Dict(c, 1:length(c))
+        R = Dict(zip(c, collect(1:length(c))))
         Ec = zeros(Int,k,length(c))
         for i = 1 : length(c)
             Ec[:,i] = map(i->get(R,i,0), E[:,c[i]])
@@ -79,7 +79,7 @@ function transform{T<:Real}(::Type{LLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12)
     for i = 1 : n
         w = W[:, i]
         jj = E[:, i]
-        M[i,jj] = M[i,jj] - w'
+        M[i,jj] = M[i,jj] - w
         M[jj,i] = M[jj,i] - w
         M[jj,jj] = M[jj,jj] + w*w'
     end

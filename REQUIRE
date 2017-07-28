@@ -1,2 +1,4 @@
-julia 0.4
+julia 0.6
 MultivariateStats
+DataStructures
+Combinatorics

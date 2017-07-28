@@ -12,4 +12,3 @@ module TestLLE
 	@test neighbors(Y) == k
 	@test length(eigvals(Y)) == d
 end
-

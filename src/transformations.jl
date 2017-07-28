@@ -1,29 +1,29 @@
 ### Transformtion
-abstract DataTransform
+abstract type DataTransform end
 
 # apply the transform
 transform!{T<:AbstractFloat, S<:DataTransform}(t::S, x::DenseArray{T,1}) = transform!(x, t, x)
 transform!{T<:AbstractFloat, S<:DataTransform}(t::S, x::DenseArray{T,2}) = transform!(x, t, x)
 
-transform{T<:Real, S<:DataTransform}(t::S, x::DenseArray{T,1}) = transform!(Array(T, size(x)), t, x)
-transform{T<:Real, S<:DataTransform}(t::S, x::DenseArray{T,2}) = transform!(Array(T, size(x)), t, x)
+transform{T<:Real, S<:DataTransform}(t::S, x::DenseArray{T,1}) = transform!(Array{T}(size(x)), t, x)
+transform{T<:Real, S<:DataTransform}(t::S, x::DenseArray{T,2}) = transform!(Array{T}(size(x)), t, x)
 
 # reconstruct the original data from transformed values
 reconstruct!{T<:AbstractFloat, S<:DataTransform}(t::S, x::DenseArray{T,1}) = reconstruct!(x, t, x)
 reconstruct!{T<:AbstractFloat, S<:DataTransform}(t::S, x::DenseArray{T,2}) = reconstruct!(x, t, x)
 
-reconstruct{T<:Real, S<:DataTransform}(t::S, y::DenseArray{T,1}) = reconstruct!(Array(T, size(y)), t, y)
-reconstruct{T<:Real, S<:DataTransform}(t::S, y::DenseArray{T,2}) = reconstruct!(Array(T, size(y)), t, y)
+reconstruct{T<:Real, S<:DataTransform}(t::S, y::DenseArray{T,1}) = reconstruct!(Array{T}(size(y)), t, y)
+reconstruct{T<:Real, S<:DataTransform}(t::S, y::DenseArray{T,2}) = reconstruct!(Array{T}(size(y)), t, y)
 
 # Z-score transformation
-immutable ZScoreTransform{T<:Real} <: DataTransform
+struct ZScoreTransform{T<:Real} <: DataTransform
     dim::Int
     mean::AbstractVector{T}
     scale::AbstractVector{T}
 
-    ZScoreTransform() = new(0, Float64[], Float64[])
+    ZScoreTransform{T}() where T = new(0, T[], T[])
 
-    function ZScoreTransform{T}(d::Int, m::AbstractVector{T}, s::AbstractVector{T})
+    function ZScoreTransform{T}(d::Int, m::AbstractVector{T}, s::AbstractVector{T}) where T
         lenm = length(m)
         lens = length(s)
         lenm == d || lenm == 0 || throw(DimensionMismatch("Inconsistent dimensions."))
@@ -43,8 +43,8 @@ function fit{T<:Real}(::Type{ZScoreTransform}, X::DenseArray{T,2}; center::Bool=
     m = vec(mean(X, 2))
     s = std(X, 2, mean=m)
 
-    return ZScoreTransform{T}(d, (center ? map(T, vec(m)) : Array(T, 0)),
-                              (scale ? map(T, vec(s)) : Array(T, 0)))
+    return ZScoreTransform{T}(d, (center ? map(T, vec(m)) : Array{T}(0)),
+                              (scale ? map(T, vec(s)) : Array{T}(0)))
 end
 
 
@@ -57,7 +57,7 @@ function transform!{YT<:Real,XT<:Real}(y::DenseArray{YT,1}, t::ZScoreTransform, 
 
     if isempty(m)
         if isempty(s)
-            if !is(x, y)
+            if x !== y
                 copy!(y, x)
             end
         else
@@ -90,7 +90,7 @@ function transform!{YT<:Real,XT<:Real}(y::DenseArray{YT,2}, t::ZScoreTransform, 
 
     if isempty(m)
         if isempty(s)
-            if !is(x, y)
+            if x !== y
                 copy!(y, x)
             end
         else
@@ -127,7 +127,7 @@ function reconstruct!{YT<:Real,XT<:Real}(x::DenseArray{XT,1}, t::ZScoreTransform
 
     if isempty(m)
         if isempty(s)
-            if !is(y, x)
+            if y !== x
                 copy!(x, y)
             end
         else
@@ -160,7 +160,7 @@ function reconstruct!{YT<:Real,XT<:Real}(x::DenseArray{XT,2}, t::ZScoreTransform
 
     if isempty(m)
         if isempty(s)
-            if !is(y, x)
+            if y !== x
                 copy!(x, y)
             end
         else
@@ -190,7 +190,7 @@ end
 
 # UnitRangeTransform normalization
 
-immutable UnitRangeTransform  <: DataTransform
+struct UnitRangeTransform  <: DataTransform
     dim::Int
     unit::Bool
     min::Vector{Float64}
@@ -213,8 +213,8 @@ outdim(t::UnitRangeTransform) = t.dim
 function fit{T<:Real}(::Type{UnitRangeTransform}, X::DenseArray{T,2}; unit::Bool=true)
     d, n = size(X)
 
-    tmin = Array(Float64, d)
-    tmax = Array(Float64, d)
+    tmin = Array{T}(d)
+    tmax = Array{T}(d)
     copy!(tmin, X[:, 1])
     copy!(tmax, X[:, 1])
     for j = 2:n

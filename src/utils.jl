@@ -1,11 +1,11 @@
-using Base.Collections
+import DataStructures: PriorityQueue, dequeue!
 
 "Generate k-nearest neighborhood graph with distances"
 function find_nn{T<:Real}(X::AbstractMatrix{T}, k::Int=12; excluding=true)
     m, n = size(X)
-    r = Array(T, (n, n))
-    d = Array(T, excluding ? k : k+1, n)
-    e = Array(Int, excluding ? k : k+1, n)
+    r = Array{T}((n, n))
+    d = Array{T}(excluding ? k : k+1, n)
+    e = Array{Int}(excluding ? k : k+1, n)
 
     At_mul_B!(r, X, X)
     sa2 = sum(X.^2, 1)
@@ -31,7 +31,7 @@ end
 function components(E::AbstractMatrix{Int})
     m, n = size(E)
     cmap = zeros(Int, n)
-    cc = Array(Vector{Int}, 0)
+    cc = Vector{Vector{Int}}(0)
     queue = Int[]
 
     for v in 1 : n
@@ -136,8 +136,8 @@ end
 function swiss_roll(n::Int = 1000, noise::Float64=0.05)
     t = (3 * pi / 2) * (1 .+ 2 * rand(n, 1))
     height = 30 * rand(n, 1)
-    X = [t .* cos(t) height t .* sin(t)] + noise * randn(n, 3)
-    labels = vec(rem(sum([round(Int, t / 2) round(Int, height / 12)], 2), 2))
+    X = [t .* cos.(t) height t .* sin.(t)] + noise * randn(n, 3)
+    labels = vec(rem.(sum([round.(Int, t / 2) round.(Int, height / 12)], 2), 2))
     return X', labels
 end
 

@@ -3,13 +3,15 @@
 # Hessian eigenmaps: Locally linear embedding techniques for high-dimensional data,
 # D. Donoho and C. Grimes, Proc Natl Acad Sci U S A. 2003 May 13; 100(10): 5591–5596
 
+import Combinatorics: combinations
+
 #### HLLE type
-immutable HLLE{T <: Real} <: SpectralResult
+struct HLLE{T <: AbstractFloat} <: SpectralResult
     k::Int
     λ::AbstractVector{T}
     proj::Projection{T}
 
-    HLLE{T}(k::Int, λ::AbstractVector{T}, proj::Projection{T}) = new(k, λ, proj)
+    HLLE{T}(k::Int, λ::AbstractVector{T}, proj::Projection{T}) where T = new(k, λ, proj)
 end
 
 ## properties
@@ -34,7 +36,7 @@ function dump(io::IO, M::HLLE)
 end
 
 ## interface functions
-function transform{T<:Real}(::Type{HLLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12)
+function transform{T<:AbstractFloat}(::Type{HLLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12)
     n = size(X, 2)
 
     # Identify neighbors

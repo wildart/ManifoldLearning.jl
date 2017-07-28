@@ -5,12 +5,12 @@
 # doi:10.1137/s1064827502419154.
 
 #### LTSA type
-immutable LTSA{T <: Real} <: SpectralResult
+struct LTSA{T <: AbstractFloat} <: SpectralResult
     k::Int
     λ::AbstractVector{T}
     proj::Projection{T}
 
-    LTSA{T}(k::Int, λ::AbstractVector{T}, proj::Projection{T}) = new(k, λ, proj)
+    LTSA{T}(k::Int, λ::AbstractVector{T}, proj::Projection{T}) where T = new(k, λ, proj)
 end
 
 ## properties
@@ -35,7 +35,7 @@ function dump(io::IO, M::LTSA)
 end
 
 ## interface functions
-function transform{T<:Real}(::Type{LTSA}, X::DenseMatrix{T}; d::Int=2, k::Int=12)
+function transform{T<:AbstractFloat}(::Type{LTSA}, X::DenseMatrix{T}; d::Int=2, k::Int=12)
     n = size(X, 2)
 
     # Construct NN graph

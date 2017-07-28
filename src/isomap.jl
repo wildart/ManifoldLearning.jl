@@ -4,13 +4,13 @@
 # J. B. Tenenbaum, V. de Silva and J. C. Langford, Science 290 (5500): 2319-2323, 22 December 2000
 
 #### Isomap type
-immutable Isomap{T <: Real} <: SpectralResult
+struct Isomap{T <: AbstractFloat} <: SpectralResult
     k::Int
     proj::Projection{T}
     component::AbstractVector{Int}
 
-    Isomap{T}(k::Int, proj::Projection{T}) = new(k, proj)
-    Isomap{T}(k::Int, proj::Projection{T}, cc::AbstractVector{Int}) = new(k, proj, cc)
+    Isomap{T}(k::Int, proj::Projection{T})  where T = new(k, proj)
+    Isomap{T}(k::Int, proj::Projection{T}, cc::AbstractVector{Int})  where T = new(k, proj, cc)
 end
 
 ## properties
@@ -41,7 +41,8 @@ function dump(io::IO, M::Isomap)
 end
 
 ## interface functions
-function transform{T <: Real}(::Type{Isomap}, X::DenseMatrix{T}; k::Int=12, d::Int=2)
+function transform{T <: AbstractFloat}(::Type{Isomap}, X::DenseMatrix{T};
+                                       k::Int=12, d::Int=2)
     # Construct NN graph
     D, E = find_nn(X, k, excluding=false)
 

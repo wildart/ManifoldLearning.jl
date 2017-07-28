@@ -4,15 +4,15 @@
 # M. Belkin, P. Niyogi, Neural Computation, June 2003; 15 (6):1373-1396
 
 #### LEM type
-immutable LEM{T <: Real} <: SpectralResult
+struct LEM{T <: AbstractFloat} <: SpectralResult
     k::Int
     λ::AbstractVector{T}
     t::T
     proj::Projection{T}
     component::Vector{Int}
 
-    LEM{T}(k::Int, λ::AbstractVector{T}, t::T, proj::Projection{T}) = new(k, λ, t, proj)
-    LEM{T}(k::Int, λ::AbstractVector{T}, t::Float64, proj::Projection{T}, cc::Vector{Int}) = new(k, λ, t, proj, cc)
+    LEM{T}(k::Int, λ::AbstractVector{T}, t::T, proj::Projection{T})  where T = new(k, λ, t, proj)
+    LEM{T}(k::Int, λ::AbstractVector{T}, t::Float64, proj::Projection{T}, cc::Vector{Int})  where T = new(k, λ, t, proj, cc)
 end
 
 ## properties
@@ -28,7 +28,7 @@ function show(io::IO, M::LEM)
     print(io, "Laplacian Eigenmaps(outdim = $(outdim(M)), neighbors = $(neighbors(M)), t = $(M.t))")
 end
 
-function dump(io::IO, M::Isomap)
+function dump(io::IO, M::LEM)
     show(io, M)
     println(io, "eigenvalues: ")
     Base.showarray(io, eigvals(M)', header=false, repr=false)
@@ -38,7 +38,7 @@ function dump(io::IO, M::Isomap)
 end
 
 ## interface functions
-function transform{T<:Real}(::Type{LEM}, X::DenseMatrix{T}; d::Int=2, k::Int=12, t::T=1.0)
+function transform{T<:AbstractFloat}(::Type{LEM}, X::DenseMatrix{T}; d::Int=2, k::Int=12, t::T=1.0)
     n = size(X, 2)
 
     # Construct NN graph
@@ -57,7 +57,7 @@ function transform{T<:Real}(::Type{LEM}, X::DenseMatrix{T}; d::Int=2, k::Int=12,
     C = length(CC) == 1 ? CC[1] : CC[indmax(map(size, CC))]
 
     # Compute weights
-    W[W .> eps(T)] = exp(-W[W .> eps(T)] ./ t)
+    W[W .> eps(T)] = exp.(-W[W .> eps(T)] ./ t)
     D = diagm(sum(W,2)[:])
     L = D - W
 
