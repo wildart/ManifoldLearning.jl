@@ -41,8 +41,8 @@ function dump(io::IO, M::Isomap)
 end
 
 ## interface functions
-function transform{T <: AbstractFloat}(::Type{Isomap}, X::DenseMatrix{T};
-                                       k::Int=12, d::Int=2)
+function transform(::Type{Isomap}, X::DenseMatrix{T};
+                   k::Int=12, d::Int=2) where T <: AbstractFloat
     # Construct NN graph
     D, E = find_nn(X, k, excluding=false)
 

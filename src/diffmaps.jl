@@ -38,8 +38,8 @@ function Base.dump(io::IO, M::DiffMap)
 end
 
 ## interface functions
-function transform{T<:AbstractFloat}(::Type{DiffMap}, X::DenseMatrix{T};
-                                     d::Int=2, t::Int=1, ɛ::T=1.0)
+function transform(::Type{DiffMap}, X::DenseMatrix{T};
+                   d::Int=2, t::Int=1, ɛ::T=1.0) where T<:AbstractFloat
     transform!(fit(UnitRangeTransform, X), X)
 
     sumX = sum(X.^ 2, 1)
