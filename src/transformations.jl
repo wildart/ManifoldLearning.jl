@@ -2,18 +2,18 @@
 abstract type DataTransform end
 
 # apply the transform
-transform!{T<:AbstractFloat, S<:DataTransform}(t::S, x::DenseArray{T,1}) = transform!(x, t, x)
-transform!{T<:AbstractFloat, S<:DataTransform}(t::S, x::DenseArray{T,2}) = transform!(x, t, x)
+transform!(t::S, x::DenseArray{T,1}) where {T<:AbstractFloat, S<:DataTransform} = transform!(x, t, x)
+transform!(t::S, x::DenseArray{T,2}) where {T<:AbstractFloat, S<:DataTransform} = transform!(x, t, x)
 
-transform{T<:Real, S<:DataTransform}(t::S, x::DenseArray{T,1}) = transform!(Array{T}(size(x)), t, x)
-transform{T<:Real, S<:DataTransform}(t::S, x::DenseArray{T,2}) = transform!(Array{T}(size(x)), t, x)
+transform(t::S, x::DenseArray{T,1}) where {T<:Real, S<:DataTransform} = transform!(Array{T}(size(x)), t, x)
+transform(t::S, x::DenseArray{T,2}) where {T<:Real, S<:DataTransform} = transform!(Array{T}(size(x)), t, x)
 
 # reconstruct the original data from transformed values
-reconstruct!{T<:AbstractFloat, S<:DataTransform}(t::S, x::DenseArray{T,1}) = reconstruct!(x, t, x)
-reconstruct!{T<:AbstractFloat, S<:DataTransform}(t::S, x::DenseArray{T,2}) = reconstruct!(x, t, x)
+reconstruct!(t::S, x::DenseArray{T,1}) where {T<:AbstractFloat, S<:DataTransform} = reconstruct!(x, t, x)
+reconstruct!(t::S, x::DenseArray{T,2}) where {T<:AbstractFloat, S<:DataTransform} = reconstruct!(x, t, x)
 
-reconstruct{T<:Real, S<:DataTransform}(t::S, y::DenseArray{T,1}) = reconstruct!(Array{T}(size(y)), t, y)
-reconstruct{T<:Real, S<:DataTransform}(t::S, y::DenseArray{T,2}) = reconstruct!(Array{T}(size(y)), t, y)
+reconstruct(t::S, y::DenseArray{T,1}) where {T<:Real, S<:DataTransform} = reconstruct!(Array{T}(size(y)), t, y)
+reconstruct(t::S, y::DenseArray{T,2}) where {T<:Real, S<:DataTransform} = reconstruct!(Array{T}(size(y)), t, y)
 
 # Z-score transformation
 struct ZScoreTransform{T<:Real} <: DataTransform
@@ -36,7 +36,7 @@ indim(t::ZScoreTransform) = t.dim
 outdim(t::ZScoreTransform) = t.dim
 
 # fit a z-score transform
-function fit{T<:Real}(::Type{ZScoreTransform}, X::DenseArray{T,2}; center::Bool=true, scale::Bool=true)
+function fit(::Type{ZScoreTransform}, X::DenseArray{T,2}; center::Bool=true, scale::Bool=true) where T<:Real
     d, n = size(X)
     n >= 2 || error("X must contain at least two columns.")
 
@@ -48,7 +48,7 @@ function fit{T<:Real}(::Type{ZScoreTransform}, X::DenseArray{T,2}; center::Bool=
 end
 
 
-function transform!{YT<:Real,XT<:Real}(y::DenseArray{YT,1}, t::ZScoreTransform, x::DenseArray{XT,1})
+function transform!(y::DenseArray{YT,1}, t::ZScoreTransform, x::DenseArray{XT,1}) where {YT<:Real,XT<:Real}
     d = t.dim
     length(x) == length(y) == d || throw(DimensionMismatch("Inconsistent dimensions."))
 
@@ -79,7 +79,7 @@ function transform!{YT<:Real,XT<:Real}(y::DenseArray{YT,1}, t::ZScoreTransform, 
     return y
 end
 
-function transform!{YT<:Real,XT<:Real}(y::DenseArray{YT,2}, t::ZScoreTransform, x::DenseArray{XT,2})
+function transform!(y::DenseArray{YT,2}, t::ZScoreTransform, x::DenseArray{XT,2}) where {YT<:Real,XT<:Real}
     d = t.dim
     size(x,1) == size(y,1) == d || throw(DimensionMismatch("Inconsistent dimensions."))
     n = size(x,2)
@@ -118,7 +118,7 @@ function transform!{YT<:Real,XT<:Real}(y::DenseArray{YT,2}, t::ZScoreTransform, 
     return y
 end
 
-function reconstruct!{YT<:Real,XT<:Real}(x::DenseArray{XT,1}, t::ZScoreTransform, y::DenseArray{YT,1})
+function reconstruct!(x::DenseArray{XT,1}, t::ZScoreTransform, y::DenseArray{YT,1}) where {YT<:Real,XT<:Real}
     d = t.dim
     length(x) == length(y) == d || throw(DimensionMismatch("Inconsistent dimensions."))
 
@@ -149,7 +149,7 @@ function reconstruct!{YT<:Real,XT<:Real}(x::DenseArray{XT,1}, t::ZScoreTransform
     return x
 end
 
-function reconstruct!{YT<:Real,XT<:Real}(x::DenseArray{XT,2}, t::ZScoreTransform, y::DenseArray{YT,2})
+function reconstruct!(x::DenseArray{XT,2}, t::ZScoreTransform, y::DenseArray{YT,2}) where {YT<:Real,XT<:Real}
     d = t.dim
     size(x,1) == size(y,1) == d || throw(DimensionMismatch("Inconsistent dimensions."))
     n = size(y,2)
@@ -210,7 +210,7 @@ end
 indim(t::UnitRangeTransform) = t.dim
 outdim(t::UnitRangeTransform) = t.dim
 
-function fit{T<:Real}(::Type{UnitRangeTransform}, X::DenseArray{T,2}; unit::Bool=true)
+function fit(::Type{UnitRangeTransform}, X::DenseArray{T,2}; unit::Bool=true) where T<:Real
     d, n = size(X)
 
     tmin = Array{T}(d)
@@ -232,7 +232,7 @@ function fit{T<:Real}(::Type{UnitRangeTransform}, X::DenseArray{T,2}; unit::Bool
     return UnitRangeTransform(d, unit, tmin, tmax)
 end
 
-function transform!{YT<:Real,XT<:Real}(y::DenseArray{YT,1}, t::UnitRangeTransform, x::DenseArray{XT,1})
+function transform!(y::DenseArray{YT,1}, t::UnitRangeTransform, x::DenseArray{XT,1}) where {YT<:Real,XT<:Real}
     d = t.dim
     length(x) == length(y) == d || throw(DimensionMismatch("Inconsistent dimensions."))
 
@@ -251,7 +251,7 @@ function transform!{YT<:Real,XT<:Real}(y::DenseArray{YT,1}, t::UnitRangeTransfor
     return y
 end
 
-function transform!{YT<:Real,XT<:Real}(y::DenseArray{YT,2}, t::UnitRangeTransform, x::DenseArray{XT,2})
+function transform!(y::DenseArray{YT,2}, t::UnitRangeTransform, x::DenseArray{XT,2}) where {YT<:Real,XT<:Real}
     d = t.dim
     size(x,1) == size(y,1) == d || throw(DimensionMismatch("Inconsistent dimensions."))
     n = size(x,2)
@@ -276,7 +276,7 @@ function transform!{YT<:Real,XT<:Real}(y::DenseArray{YT,2}, t::UnitRangeTransfor
     return y
 end
 
-function reconstruct!{YT<:Real,XT<:Real}(x::DenseArray{XT,1}, t::UnitRangeTransform, y::DenseArray{YT,1})
+function reconstruct!(x::DenseArray{XT,1}, t::UnitRangeTransform, y::DenseArray{YT,1}) where {YT<:Real,XT<:Real}
     d = t.dim
     length(x) == length(y) == d || throw(DimensionMismatch("Inconsistent dimensions."))
 
@@ -295,7 +295,7 @@ function reconstruct!{YT<:Real,XT<:Real}(x::DenseArray{XT,1}, t::UnitRangeTransf
     return x
 end
 
-function reconstruct!{YT<:Real,XT<:Real}(x::DenseArray{XT,2}, t::UnitRangeTransform, y::DenseArray{YT,2})
+function reconstruct!(x::DenseArray{XT,2}, t::UnitRangeTransform, y::DenseArray{YT,2}) where {YT<:Real,XT<:Real}
     d = t.dim
     size(x,1) == size(y,1) == d || throw(DimensionMismatch("Inconsistent dimensions."))
     n = size(y,2)

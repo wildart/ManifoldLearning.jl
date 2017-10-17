@@ -1,7 +1,7 @@
 import DataStructures: PriorityQueue, dequeue!
 
 "Generate k-nearest neighborhood graph with distances"
-function find_nn{T<:Real}(X::AbstractMatrix{T}, k::Int=12; excluding=true)
+function find_nn(X::AbstractMatrix{T}, k::Int=12; excluding=true) where T<:Real
     m, n = size(X)
     r = Array{T}((n, n))
     d = Array{T}(excluding ? k : k+1, n)
@@ -59,7 +59,7 @@ function components(E::AbstractMatrix{Int})
 end
 
 "Dijkstra's algorithm for single-source shortest path"
-function dijkstra{T<:Real}(D::AbstractMatrix{T}, E::AbstractMatrix{Int}, src::Int, dst::Int =-1)
+function dijkstra(D::AbstractMatrix{T}, E::AbstractMatrix{Int}, src::Int, dst::Int =-1) where T<:Real
     m, n = size(D)
     path = zeros(Int, n)
     dist = fill(Inf, n)
@@ -142,7 +142,7 @@ function swiss_roll(n::Int = 1000, noise::Float64=0.05)
 end
 
 "Perform spectral decomposition for Ax=λI"
-function decompose{T<:Real}(M::AbstractMatrix{T}, d::Int)
+function decompose(M::AbstractMatrix{T}, d::Int) where T<:Real
     W = isa(M, AbstractSparseArray) ? Symmetric(full(M)) : Symmetric(M)
     F = eigfact!(W)
     idx = sortperm(F[:values])[2:d+1]
@@ -150,7 +150,7 @@ function decompose{T<:Real}(M::AbstractMatrix{T}, d::Int)
 end
 
 "Perform spectral decomposition for Ax=λB"
-function decompose{T<:Real}(A::AbstractMatrix{T}, B::AbstractMatrix{T}, d::Int)
+function decompose(A::AbstractMatrix{T}, B::AbstractMatrix{T}, d::Int) where T<:Real
     AA = isa(A, AbstractSparseArray) ? Symmetric(full(A)) : Symmetric(A)
     BB = isa(B, AbstractSparseArray) ? Symmetric(full(B)) : Symmetric(B)
     F = eigfact(AA, BB)

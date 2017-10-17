@@ -36,7 +36,7 @@ function dump(io::IO, M::HLLE)
 end
 
 ## interface functions
-function transform{T<:AbstractFloat}(::Type{HLLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12)
+function transform(::Type{HLLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12) where T<:AbstractFloat
     n = size(X, 2)
 
     # Identify neighbors
