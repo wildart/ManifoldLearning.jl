@@ -57,7 +57,7 @@ function transform(::Type{Isomap}, X::DenseMatrix{T};
         Dc = D[:,C]
 
         # renumber edges
-        R = Dict(C, 1:length(C))
+        R = Dict(zip(C, 1:length(C)))
         Ec = zeros(Int,k,length(C))
         for i = 1 : length(C)
             Ec[:,i] = map(i->get(R,i,0), E[:,C[i]])
