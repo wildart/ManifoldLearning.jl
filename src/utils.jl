@@ -65,7 +65,7 @@ function dijkstra(D::AbstractMatrix{T}, E::AbstractMatrix{Int}, src::Int, dst::I
     dist = fill(Inf, n)
     dist[src] = 0
 
-    q = PriorityQueue(1:n, dist)
+    q = PriorityQueue(zip(1:n, dist))
     while !isempty(q)
         u = dequeue!(q)
         if u == dst
