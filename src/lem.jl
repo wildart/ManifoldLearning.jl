@@ -38,7 +38,7 @@ function dump(io::IO, M::LEM)
 end
 
 ## interface functions
-function transform{T<:AbstractFloat}(::Type{LEM}, X::DenseMatrix{T}; d::Int=2, k::Int=12, t::T=1.0)
+function transform(::Type{LEM}, X::DenseMatrix{T}; d::Int=2, k::Int=12, t::T=1.0) where T<:AbstractFloat
     n = size(X, 2)
 
     # Construct NN graph

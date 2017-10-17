@@ -41,10 +41,10 @@ function dump(io::IO, M::Isomap)
 end
 
 ## interface functions
-function transform{T <: AbstractFloat}(::Type{Isomap}, X::DenseMatrix{T};
-                                       k::Int=12, d::Int=2)
+function transform(::Type{Isomap}, X::DenseMatrix{T};
+                   k::Int=12, d::Int=2) where T <: AbstractFloat
     # Construct NN graph
-    D, E = find_nn(X, k, excluding=false)
+    D, E = find_nn(X, k, excluding=true)
 
     # Select largest connected component
     CC = components(E)
@@ -57,7 +57,7 @@ function transform{T <: AbstractFloat}(::Type{Isomap}, X::DenseMatrix{T};
         Dc = D[:,C]
 
         # renumber edges
-        R = Dict(C, 1:length(C))
+        R = Dict(zip(C, 1:length(C)))
         Ec = zeros(Int,k,length(C))
         for i = 1 : length(C)
             Ec[:,i] = map(i->get(R,i,0), E[:,C[i]])
