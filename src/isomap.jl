@@ -44,7 +44,7 @@ end
 function transform(::Type{Isomap}, X::DenseMatrix{T};
                    k::Int=12, d::Int=2) where T <: AbstractFloat
     # Construct NN graph
-    D, E = find_nn(X, k, excluding=false)
+    D, E = find_nn(X, k, excluding=true)
 
     # Select largest connected component
     CC = components(E)
