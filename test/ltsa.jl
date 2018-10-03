@@ -1,6 +1,8 @@
 module TestLTSA
-	using ManifoldLearning
-	using Base.Test
+    using ManifoldLearning
+    using Test
+
+    @testset "LTSA" begin
 
 	k = 12
 	d = 2
@@ -11,4 +13,5 @@ module TestLTSA
 	@test size(projection(Y), 2) == size(X, 2)
 	@test neighbors(Y) == k
 	@test length(eigvals(Y)) == d
+    end
 end

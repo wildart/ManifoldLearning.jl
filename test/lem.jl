@@ -1,6 +1,8 @@
 module TestLEM
-	using ManifoldLearning
-	using Base.Test
+    using ManifoldLearning
+    using Test
+
+    @testset "TestLEM" begin
 
 	k = 12
 	d = 2
@@ -12,4 +14,5 @@ module TestLEM
 	@test neighbors(Y) == k
 	@test length(eigvals(Y)) == d
 	@test length(ccomponent(Y)) > 1
+    end
 end

@@ -28,7 +28,7 @@ end
 function dump(io::IO, M::LTSA)
     show(io, M)
     println(io, "eigenvalues: ")
-    Base.showarray(io, M.λ', header=false, repr=false)
+    Base.showarray(io, transpose(M.λ), header=false, repr=false)
     println(io)
     println(io, "projection:")
     Base.showarray(io, M.proj, header=false, repr=false)
@@ -44,18 +44,18 @@ function transform(::Type{LTSA}, X::DenseMatrix{T}; d::Int=2, k::Int=12) where T
     B = spzeros(n,n)
     for i=1:n
         # re-center points in neighborhood
-        μ = mean(X[:,I[:,i]],2)
+        μ = mean(X[:,I[:,i]], dims=2)
         δ_x = X[:,I[:,i]] .- μ
 
         # Compute orthogonal basis H of θ'
-        θ_t = svdfact(δ_x)[:V][:,1:d]
+        θ_t = svd(δ_x).V[:,1:d]
 
         # Construct alignment matrix
         G = hcat(ones(k)./sqrt(k), θ_t)
-        B[I[:,i], I[:,i]] =  B[I[:,i], I[:,i]] + eye(k) - G*G'
+        B[I[:,i], I[:,i]] =  B[I[:,i], I[:,i]] + Matrix{Float64}(LinearAlgebra.I, k, k) - G*transpose(G)
     end
 
     # Align global coordinates
     λ, V = decompose(B, d)
-    return LTSA{T}(k, λ, V')
+    return LTSA{T}(k, λ, transpose(V))
 end

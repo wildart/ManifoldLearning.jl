@@ -42,17 +42,17 @@ function transform(::Type{DiffMap}, X::DenseMatrix{T};
                    d::Int=2, t::Int=1, ɛ::T=1.0) where T<:AbstractFloat
     transform!(fit(UnitRangeTransform, X), X)
 
-    sumX = sum(X.^ 2, 1)
-    K = exp.(( sumX' .+ sumX .- 2*At_mul_B(X,X) ) ./ ɛ)
+    sumX = sum(X.^ 2, dims=1)
+    K = exp.(( transpose(sumX) .+ sumX .- 2*transpose(X) * X ) ./ ɛ)
 
-    p = sum(K, 1)'
-    K ./= ((p * p') .^ t)
-    p = sqrt.(sum(K, 1))'
-    K ./= (p * p')
+    p = transpose(sum(K, dims=1))
+    K ./= ((p * transpose(p)) .^ t)
+    p = transpose(sqrt.(sum(K, dims=1)))
+    K ./= (p * transpose(p))
 
-    U, S, V = svd(K, thin=false)
+    U, S, V = svd(K, full=true)
     U ./= U[:,1]
     Y = U[:,2:(d+1)]
 
-    return DiffMap{T}(t, ɛ, K, Y')
+    return DiffMap{T}(t, ɛ, K, transpose(Y))
 end

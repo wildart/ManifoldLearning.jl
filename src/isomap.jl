@@ -30,11 +30,11 @@ function dump(io::IO, M::Isomap)
     # try # Print largest connected component
     #     lcc = ccomponent(M)
     #     println(io, "connected component: ")
-    #     Base.showarray(io, lcc', header=false, repr=false)
+    #     Base.showarray(io, transpose(lcc), header=false, repr=false)
     #     println(io)
     # end
     println(io, "eigenvalues: ")
-    Base.showarray(io, M.λ', header=false, repr=false)
+    Base.showarray(io, transpose(M.λ), header=false, repr=false)
     println(io)
     println(io, "projection:")
     Base.showarray(io, M.proj, header=false, repr=false)
@@ -53,7 +53,7 @@ function transform(::Type{Isomap}, X::DenseMatrix{T};
         Dc = D
         Ec = E
     else
-        C = CC[indmax(map(size, CC))]
+        C = CC[argmax(map(size, CC))]
         Dc = D[:,C]
 
         # renumber edges

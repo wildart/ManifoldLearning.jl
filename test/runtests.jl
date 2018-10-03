@@ -1,3 +1,5 @@
+using Test
+
 my_tests = ["utils.jl",
             "transformations.jl",
             "isomap.jl",
@@ -7,9 +9,13 @@ my_tests = ["utils.jl",
             "lem.jl",
             "diffmaps.jl"]
 
-println("Running tests:")
+@testset "ManifoldLearning" begin
 
-for my_test in my_tests
-    println(" * $(my_test)")
-    include(my_test)
+    println("Running tests:")
+
+    for my_test in my_tests
+        println(" * $(my_test)")
+        include(my_test)
+    end
+
 end

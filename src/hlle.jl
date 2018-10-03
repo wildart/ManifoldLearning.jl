@@ -29,7 +29,7 @@ end
 function dump(io::IO, M::HLLE)
     show(io, M)
     println(io, "eigenvalues: ")
-    Base.showarray(io, M.λ', header=false, repr=false)
+    Base.showarray(io, transpose(M.λ), header=false, repr=false)
     println(io)
     println(io, "projection:")
     Base.showarray(io, M.proj, header=false, repr=false)
@@ -47,11 +47,11 @@ function transform(::Type{HLLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12) where T
     W = spzeros(hs*n,n)
     for i=1:n
         # re-center points in neighborhood
-        μ = mean(X[:,I[:,i]],2)
+        μ = mean(X[:,I[:,i]], dims=2)
         N = X[:,I[:,i]] .- μ
         # calculate tangent coordinates
-        #tc = svdfact(N')[:U][:,1:d]
-        tc = svdfact(N)[:V][:,1:d]
+        #tc = svd(transpose(N)).U[:,1:d]
+        tc = svd(N).V[:,1:d]
 
         # Develop Hessian estimator
         Yi = [ones(k) tc zeros(k,hs)]
@@ -63,12 +63,12 @@ function transform(::Type{HLLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12) where T
             Yi[:, yi] = tc[:, ii] .* tc[:, jj]
             yi += 1
         end
-        F = qrfact(Yi)
-        H = full(F[:Q])[:,d+2:end]'
-        W[(i-1)*hs+(1:hs),I[:,i]] = H
+        F = qr(Yi)
+        H = transpose(Matrix(F.Q)[:,d+2:end])
+        W[(i-1)*hs .+ (1:hs),I[:,i]] = H
     end
 
     # decomposition
-    λ, V = decompose(W'*W, d)
-    return HLLE{T}(k, λ, V' .* sqrt(n))
+    λ, V = decompose(transpose(W)*W, d)
+    return HLLE{T}(k, λ, transpose(V) .* sqrt(n))
 end
