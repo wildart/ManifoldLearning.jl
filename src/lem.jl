@@ -31,7 +31,7 @@ end
 function dump(io::IO, M::LEM)
     show(io, M)
     println(io, "eigenvalues: ")
-    Base.showarray(io, eigvals(M)', header=false, repr=false)
+    Base.showarray(io, transpose(eigvals(M)), header=false, repr=false)
     println(io)
     println(io, "projection:")
     Base.showarray(io, projection(M), header=false, repr=false)
@@ -54,13 +54,13 @@ function transform(::Type{LEM}, X::DenseMatrix{T}; d::Int=2, k::Int=12, t::T=1.0
 
     # Select largest connected component
     CC = components(E)
-    C = length(CC) == 1 ? CC[1] : CC[indmax(map(size, CC))]
+    C = length(CC) == 1 ? CC[1] : CC[argmax(map(size, CC))]
 
     # Compute weights
     W[W .> eps(T)] = exp.(-W[W .> eps(T)] ./ t)
-    D = diagm(sum(W,2)[:])
+    D = diagm(0 => sum(W, dims=2)[:])
     L = D - W
 
     λ, V = decompose(L, D, d)
-    return LEM{T}(k, λ, t, V', C)
+    return LEM{T}(k, λ, t, transpose(V), C)
 end

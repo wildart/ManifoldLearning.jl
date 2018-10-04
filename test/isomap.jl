@@ -1,6 +1,8 @@
 module TestIsomap
-	using ManifoldLearning
-	using Base.Test
+    using ManifoldLearning
+    using Test
+
+    @testset "Isomap" begin
 
 	k = 12
 	d = 2
@@ -11,4 +13,5 @@ module TestIsomap
 	@test size(projection(Y), 2) == size(X, 2)
 	@test neighbors(Y) == k
 	@test length(ccomponent(Y)) > 1
+    end
 end

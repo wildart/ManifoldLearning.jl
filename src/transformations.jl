@@ -5,15 +5,15 @@ abstract type DataTransform end
 transform!(t::S, x::DenseArray{T,1}) where {T<:AbstractFloat, S<:DataTransform} = transform!(x, t, x)
 transform!(t::S, x::DenseArray{T,2}) where {T<:AbstractFloat, S<:DataTransform} = transform!(x, t, x)
 
-transform(t::S, x::DenseArray{T,1}) where {T<:Real, S<:DataTransform} = transform!(Array{T}(size(x)), t, x)
-transform(t::S, x::DenseArray{T,2}) where {T<:Real, S<:DataTransform} = transform!(Array{T}(size(x)), t, x)
+transform(t::S, x::DenseArray{T,1}) where {T<:Real, S<:DataTransform} = transform!(Array{T}(undef, size(x)), t, x)
+transform(t::S, x::DenseArray{T,2}) where {T<:Real, S<:DataTransform} = transform!(Array{T}(undef, size(x)), t, x)
 
 # reconstruct the original data from transformed values
 reconstruct!(t::S, x::DenseArray{T,1}) where {T<:AbstractFloat, S<:DataTransform} = reconstruct!(x, t, x)
 reconstruct!(t::S, x::DenseArray{T,2}) where {T<:AbstractFloat, S<:DataTransform} = reconstruct!(x, t, x)
 
-reconstruct(t::S, y::DenseArray{T,1}) where {T<:Real, S<:DataTransform} = reconstruct!(Array{T}(size(y)), t, y)
-reconstruct(t::S, y::DenseArray{T,2}) where {T<:Real, S<:DataTransform} = reconstruct!(Array{T}(size(y)), t, y)
+reconstruct(t::S, y::DenseArray{T,1}) where {T<:Real, S<:DataTransform} = reconstruct!(Array{T}(undef, size(y)), t, y)
+reconstruct(t::S, y::DenseArray{T,2}) where {T<:Real, S<:DataTransform} = reconstruct!(Array{T}(undef, size(y)), t, y)
 
 # Z-score transformation
 struct ZScoreTransform{T<:Real} <: DataTransform
@@ -40,11 +40,11 @@ function fit(::Type{ZScoreTransform}, X::DenseArray{T,2}; center::Bool=true, sca
     d, n = size(X)
     n >= 2 || error("X must contain at least two columns.")
 
-    m = vec(mean(X, 2))
-    s = std(X, 2, mean=m)
+    m = vec(mean(X, dims=2))
+    s = std(X, dims=2, mean=m)
 
-    return ZScoreTransform{T}(d, (center ? map(T, vec(m)) : Array{T}(0)),
-                              (scale ? map(T, vec(s)) : Array{T}(0)))
+    return ZScoreTransform{T}(d, (center ? map(T, vec(m)) : Array{T}([])),
+                              (scale ? map(T, vec(s)) : Array{T}([])))
 end
 
 
@@ -58,7 +58,7 @@ function transform!(y::DenseArray{YT,1}, t::ZScoreTransform, x::DenseArray{XT,1}
     if isempty(m)
         if isempty(s)
             if x !== y
-                copy!(y, x)
+                copyto!(y, x)
             end
         else
             for i = 1:d
@@ -91,7 +91,7 @@ function transform!(y::DenseArray{YT,2}, t::ZScoreTransform, x::DenseArray{XT,2}
     if isempty(m)
         if isempty(s)
             if x !== y
-                copy!(y, x)
+                copyto!(y, x)
             end
         else
             for j = 1:n
@@ -128,7 +128,7 @@ function reconstruct!(x::DenseArray{XT,1}, t::ZScoreTransform, y::DenseArray{YT,
     if isempty(m)
         if isempty(s)
             if y !== x
-                copy!(x, y)
+                copyto!(x, y)
             end
         else
             for i = 1:d
@@ -161,7 +161,7 @@ function reconstruct!(x::DenseArray{XT,2}, t::ZScoreTransform, y::DenseArray{YT,
     if isempty(m)
         if isempty(s)
             if y !== x
-                copy!(x, y)
+                copyto!(x, y)
             end
         else
             for j = 1:n
@@ -213,10 +213,10 @@ outdim(t::UnitRangeTransform) = t.dim
 function fit(::Type{UnitRangeTransform}, X::DenseArray{T,2}; unit::Bool=true) where T<:Real
     d, n = size(X)
 
-    tmin = Array{T}(d)
-    tmax = Array{T}(d)
-    copy!(tmin, X[:, 1])
-    copy!(tmax, X[:, 1])
+    tmin = Array{T}(undef, d)
+    tmax = Array{T}(undef, d)
+    copyto!(tmin, X[:, 1])
+    copyto!(tmax, X[:, 1])
     for j = 2:n
         @inbounds for i = 1:d
             if X[i, j] < tmin[i]

@@ -1,11 +1,14 @@
-__precompile__()
 
 module ManifoldLearning
 
     using MultivariateStats
+    using Statistics: mean, std
+    using LinearAlgebra
+    using SparseArrays: AbstractSparseArray, SparseMatrixCSC, spzeros
 
-    import Base: show, dump, eigvals
+    import Base: show, dump
     import MultivariateStats: outdim, projection, transform
+    import LinearAlgebra: eigvals
 
     export
 

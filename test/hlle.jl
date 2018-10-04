@@ -1,6 +1,9 @@
 module TestHLLE
-	using ManifoldLearning
-	using Base.Test
+    using ManifoldLearning
+    using LinearAlgebra: eigvals
+    using Test
+
+    @testset "HLLE" begin
 
 	k = 12
 	d = 2
@@ -11,4 +14,5 @@ module TestHLLE
 	@test size(projection(Y), 2) == size(X, 2)
 	@test neighbors(Y) == k
 	@test length(eigvals(Y)) == d
+    end
 end
