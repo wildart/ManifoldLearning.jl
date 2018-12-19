@@ -4,7 +4,7 @@
 # M. Belkin, P. Niyogi, Neural Computation, June 2003; 15 (6):1373-1396
 
 #### LEM type
-struct LEM{T <: AbstractFloat} <: SpectralResult
+struct LEM{T <: Real} <: AbstractDimensionalityReduction
     k::Int
     λ::AbstractVector{T}
     t::T
@@ -38,7 +38,7 @@ function dump(io::IO, M::LEM)
 end
 
 ## interface functions
-function transform(::Type{LEM}, X::DenseMatrix{T}; d::Int=2, k::Int=12, t::T=1.0) where T<:AbstractFloat
+function transform(::Type{LEM}, X::AbstractMatrix{T}; d::Int=2, k::Int=12, t::T=1.0) where {T<:Real}
     n = size(X, 2)
 
     # Construct NN graph

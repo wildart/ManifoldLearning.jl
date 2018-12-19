@@ -1,14 +1,10 @@
-
 module ManifoldLearning
 
-    using MultivariateStats
-    using Statistics: mean, std
-    using LinearAlgebra
-    using SparseArrays: AbstractSparseArray, SparseMatrixCSC, spzeros
-
     import Base: show, dump
-    import MultivariateStats: outdim, projection, transform
-    import LinearAlgebra: eigvals
+    import SparseArrays: AbstractSparseArray, SparseMatrixCSC, spzeros, spdiagm
+    import Statistics: mean, std
+    import MultivariateStats: outdim, projection, transform, classical_mds
+    import LinearAlgebra: eigvals, mul!, svd, qr, Symmetric, eigen, eigen!, diagm, tr, rmul!
 
     export
 
@@ -27,12 +23,11 @@ module ManifoldLearning
     LLE,                # Type: Locally Linear Embedding model
     LTSA,               # Type: Local Tangent Space Alignment model
     LEM,                # Type: Laplacian Eigenmaps model
-    DiffMap,            # Type: Diffusion maps model
+    DiffMap             # Type: Diffusion maps model
 
-    # example dataset
-    swiss_roll          # swiss roll dataset generator
+    abstract type AbstractDimensionalityReduction end
+    const Projection{T <: Real} = AbstractMatrix{T}
 
-    include("types.jl")
     include("utils.jl")
     include("transformations.jl")
     include("isomap.jl")
@@ -42,4 +37,3 @@ module ManifoldLearning
     include("lem.jl")
     include("diffmaps.jl")
 end
-

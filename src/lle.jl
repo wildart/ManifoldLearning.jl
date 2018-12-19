@@ -4,7 +4,7 @@
 # Roweis, S. & Saul, L., Science 290:2323 (2000)
 
 #### LLE type
-struct LLE{T <: AbstractFloat} <: SpectralResult
+struct LLE{T <: Real} <: AbstractDimensionalityReduction
     k::Int
     λ::AbstractVector{T}
     proj::Projection{T}
@@ -34,7 +34,7 @@ function dump(io::IO, M::LLE)
 end
 
 ## interface functions
-function transform(::Type{LLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12) where T<:AbstractFloat
+function transform(::Type{LLE}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) where {T<:Real}
     n = size(X, 2)
 
     # Construct NN graph
@@ -69,13 +69,13 @@ function transform(::Type{LLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12) where T<
     for i = 1 : n
         Z = X[:, E[:,i]] .- X[:,i]
         C = transpose(Z)*Z
-        C = C + Matrix{Float64}(I, k, k) * tol * tr(C)
+        C = C + diagm(0 => fill(one(T), k)) * tol * tr(C)
         wi = vec(C\ones(k, 1))
         W[:, i] = wi./sum(wi)
     end
 
     # Compute embedding
-    M = SparseMatrixCSC{Float64}(I, n,n)
+    M = spdiagm(0 => fill(one(T), n))
     for i = 1 : n
         w = W[:, i]
         jj = E[:, i]

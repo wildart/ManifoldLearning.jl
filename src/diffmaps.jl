@@ -4,7 +4,7 @@
 # Coifman, R. & Lafon, S., Applied and Computational Harmonic Analysis, Elsevier, 2006, 21, 5-30
 
 #### DiffMap type
-struct DiffMap{T <: AbstractFloat} <: SpectralResult
+struct DiffMap{T <: Real} <: AbstractDimensionalityReduction
     t::Int
     ɛ::Float64
     K::AbstractMatrix{T}
@@ -38,8 +38,7 @@ function Base.dump(io::IO, M::DiffMap)
 end
 
 ## interface functions
-function transform(::Type{DiffMap}, X::DenseMatrix{T};
-                   d::Int=2, t::Int=1, ɛ::T=1.0) where T<:AbstractFloat
+function transform(::Type{DiffMap}, X::AbstractMatrix{T}; d::Int=2, t::Int=1, ɛ::T=1.0) where {T<:Real}
     transform!(fit(UnitRangeTransform, X), X)
 
     sumX = sum(X.^ 2, dims=1)

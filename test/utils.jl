@@ -1,8 +1,4 @@
-module TestUtils
-    using ManifoldLearning
-    using Test
-
-    @testset "Utils" begin
+@testset "Utils" begin
 
 	k = 3
 	X = rand(3, 15)
@@ -26,5 +22,5 @@ module TestUtils
         E = transpose([2 3 6; 1 3 4; 1 2 6; 2 5 4; 3 4 6; 1 3 5])
 	P, PD = ManifoldLearning.dijkstra(D, E, 1)
 	@test PD[5] == 20. && PD[6] == 11.
-    end
+
 end

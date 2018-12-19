@@ -5,7 +5,7 @@
 # doi:10.1137/s1064827502419154.
 
 #### LTSA type
-struct LTSA{T <: AbstractFloat} <: SpectralResult
+struct LTSA{T <: Real} <: AbstractDimensionalityReduction
     k::Int
     λ::AbstractVector{T}
     proj::Projection{T}
@@ -35,13 +35,13 @@ function dump(io::IO, M::LTSA)
 end
 
 ## interface functions
-function transform(::Type{LTSA}, X::DenseMatrix{T}; d::Int=2, k::Int=12) where T<:AbstractFloat
+function transform(::Type{LTSA}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) where {T<:Real}
     n = size(X, 2)
 
     # Construct NN graph
     D, I = find_nn(X, k)
 
-    B = spzeros(n,n)
+    B = spzeros(T, n,n)
     for i=1:n
         # re-center points in neighborhood
         μ = mean(X[:,I[:,i]], dims=2)
@@ -52,7 +52,7 @@ function transform(::Type{LTSA}, X::DenseMatrix{T}; d::Int=2, k::Int=12) where T
 
         # Construct alignment matrix
         G = hcat(ones(k)./sqrt(k), θ_t)
-        B[I[:,i], I[:,i]] =  B[I[:,i], I[:,i]] + Matrix{Float64}(LinearAlgebra.I, k, k) - G*transpose(G)
+        B[I[:,i], I[:,i]] =  B[I[:,i], I[:,i]] + diagm(0 => fill(one(T), k)) - G*transpose(G)
     end
 
     # Align global coordinates

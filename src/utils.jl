@@ -62,8 +62,8 @@ end
 function dijkstra(D::AbstractMatrix{T}, E::AbstractMatrix{Int}, src::Int, dst::Int =-1) where T<:Real
     m, n = size(D)
     path = zeros(Int, n)
-    dist = fill(Inf, n)
-    dist[src] = 0
+    dist = fill(typemax(T), n)
+    dist[src] = zero(T)
 
     q = PriorityQueue(zip(1:n, dist))
     while !isempty(q)
@@ -141,7 +141,7 @@ function swiss_roll(n::Int = 1000, noise::Float64=0.05)
 end
 
 "Perform spectral decomposition for Ax=λI"
-function decompose(M::AbstractMatrix{T}, d::Int) where T<:Real
+function decompose(M::AbstractMatrix{<:Real}, d::Int)
     W = isa(M, AbstractSparseArray) ? Symmetric(Matrix(M)) : Symmetric(M)
     F = eigen!(W)
     idx = sortperm(F.values)[2:d+1]
@@ -149,7 +149,7 @@ function decompose(M::AbstractMatrix{T}, d::Int) where T<:Real
 end
 
 "Perform spectral decomposition for Ax=λB"
-function decompose(A::AbstractMatrix{T}, B::AbstractMatrix{T}, d::Int) where T<:Real
+function decompose(A::AbstractMatrix{<:Real}, B::AbstractMatrix{<:Real}, d::Int)
     AA = isa(A, AbstractSparseArray) ? Symmetric(full(A)) : Symmetric(A)
     BB = isa(B, AbstractSparseArray) ? Symmetric(full(B)) : Symmetric(B)
     F = eigen(AA, BB)

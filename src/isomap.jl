@@ -4,13 +4,13 @@
 # J. B. Tenenbaum, V. de Silva and J. C. Langford, Science 290 (5500): 2319-2323, 22 December 2000
 
 #### Isomap type
-struct Isomap{T <: AbstractFloat} <: SpectralResult
+struct Isomap{T <: Real} <: AbstractDimensionalityReduction
     k::Int
     proj::Projection{T}
     component::AbstractVector{Int}
 
-    Isomap{T}(k::Int, proj::Projection{T})  where T = new(k, proj)
-    Isomap{T}(k::Int, proj::Projection{T}, cc::AbstractVector{Int})  where T = new(k, proj, cc)
+    Isomap{T}(k::Int, proj::Projection{T}) where T = new(k, proj)
+    Isomap{T}(k::Int, proj::Projection{T}, cc::AbstractVector{Int}) where T = new(k, proj, cc)
 end
 
 ## properties
@@ -41,8 +41,7 @@ function dump(io::IO, M::Isomap)
 end
 
 ## interface functions
-function transform(::Type{Isomap}, X::DenseMatrix{T};
-                   k::Int=12, d::Int=2) where T <: AbstractFloat
+function transform(::Type{Isomap}, X::AbstractMatrix{T}; k::Int=12, d::Int=2) where {T<:Real}
     # Construct NN graph
     D, E = find_nn(X, k, excluding=true)
 
@@ -66,7 +65,7 @@ function transform(::Type{Isomap}, X::DenseMatrix{T};
 
     # Compute shortest path for every point
     n = size(Dc,2)
-    DD = zeros(n, n)
+    DD = zeros(T, n, n)
     for i=1:n
         P, PD = dijkstra(Dc, Ec, i)
         DD[i,:] = PD

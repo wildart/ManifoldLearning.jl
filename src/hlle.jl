@@ -6,7 +6,7 @@
 import Combinatorics: combinations
 
 #### HLLE type
-struct HLLE{T <: AbstractFloat} <: SpectralResult
+struct HLLE{T <: Real} <: AbstractDimensionalityReduction
     k::Int
     λ::AbstractVector{T}
     proj::Projection{T}
@@ -36,7 +36,7 @@ function dump(io::IO, M::HLLE)
 end
 
 ## interface functions
-function transform(::Type{HLLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12) where T<:AbstractFloat
+function transform(::Type{HLLE}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) where {T<:Real}
     n = size(X, 2)
 
     # Identify neighbors

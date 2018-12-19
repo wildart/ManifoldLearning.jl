@@ -1,21 +1,36 @@
+using ManifoldLearning
 using Test
 
-my_tests = ["utils.jl",
-            "transformations.jl",
-            "isomap.jl",
-            "lle.jl",
-            "hlle.jl",
-            "ltsa.jl",
-            "lem.jl",
-            "diffmaps.jl"]
+include("utils.jl")
+include("transformations.jl")
 
 @testset "ManifoldLearning" begin
 
-    println("Running tests:")
+    # setup parameters
+    k = 12
+    d = 2
+    t = 1
+    X, L = ManifoldLearning.swiss_roll()
 
-    for my_test in my_tests
-        println(" * $(my_test)")
-        include(my_test)
+    @testset for algorithm in [Isomap, HLLE, LLE, LEM, LTSA, DiffMap]
+
+        # construct KW parameters
+        kwargs = [:d=>d]
+        if algorithm == DiffMap
+            push!(kwargs, :t => t)
+        else
+            push!(kwargs, :k => k)
+        end
+
+        # call transformation
+        Y = transform(algorithm, X; kwargs...)
+
+        # test results
+        @test outdim(Y) == d
+        @test size(projection(Y), 2) == size(X, 2)
+        length(methods(neighbors, (algorithm,))) > 0 && @test neighbors(Y) == k
+        length(methods(ccomponent, (algorithm,))) > 0 && @test length(ccomponent(Y)) > 1
+        length(methods(eigvals, (algorithm,))) > 0 && @test length(eigvals(Y)) == d
     end
 
 end
