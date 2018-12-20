@@ -39,20 +39,22 @@ function transform(::Type{LTSA}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) wher
     n = size(X, 2)
 
     # Construct NN graph
-    D, I = find_nn(X, k)
-
+    D, E = find_nn(X, k)
+    S = ones(k)./sqrt(k)
     B = spzeros(T, n,n)
     for i=1:n
+        II = @view E[:,i]
+
         # re-center points in neighborhood
-        μ = mean(X[:,I[:,i]], dims=2)
-        δ_x = X[:,I[:,i]] .- μ
+        μ = mean(X[:, II], dims=2)
+        δ_x = X[:, II] .- μ
 
         # Compute orthogonal basis H of θ'
         θ_t = svd(δ_x).V[:,1:d]
 
         # Construct alignment matrix
-        G = hcat(ones(k)./sqrt(k), θ_t)
-        B[I[:,i], I[:,i]] =  B[I[:,i], I[:,i]] + diagm(0 => fill(one(T), k)) - G*transpose(G)
+        G = hcat(S, θ_t)
+        B[II, II] .+= diagm(0 => fill(one(T), k)) .- G*transpose(G)
     end
 
     # Align global coordinates

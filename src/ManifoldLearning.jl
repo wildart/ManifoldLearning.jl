@@ -1,10 +1,13 @@
 module ManifoldLearning
 
     import Base: show, dump
-    import SparseArrays: AbstractSparseArray, SparseMatrixCSC, spzeros, spdiagm
+    import SparseArrays: AbstractSparseArray, SparseMatrixCSC, spzeros, spdiagm, findnz
     import Statistics: mean, std
     import MultivariateStats: outdim, projection, transform, classical_mds
-    import LinearAlgebra: eigvals, mul!, svd, qr, Symmetric, eigen, eigen!, diagm, tr, rmul!
+    import LinearAlgebra: eigvals, mul!, svd, qr, Symmetric, eigen, eigen!, diagm, tr, rmul!, I
+    import LightGraphs: neighbors, nv, add_edge!, connected_components, vertices,
+                        dijkstra_shortest_paths, induced_subgraph, weights
+    import SimpleWeightedGraphs: SimpleWeightedGraph
 
     export
 
@@ -12,10 +15,9 @@ module ManifoldLearning
     outdim,             # the output dimension of the transformation
     projection,         # the projection matrix
     eigvals,            # eigenvalues from the spectral analysis
-    neighbors,          # the number of nearest neighbors used for building local structure
-    ccomponent,         # point indexes of the largest connected component
-
+    neighbors,          # the number of nearest neighbors used for building local
     transform,          # perform the manifold learning
+    vertices,
 
     # Transformation types
     Isomap,             # Type: Isomap model

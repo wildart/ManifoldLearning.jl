@@ -34,54 +34,49 @@ function dump(io::IO, M::LLE)
 end
 
 ## interface functions
-function transform(::Type{LLE}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) where {T<:Real}
-    n = size(X, 2)
-
+function transform(::Type{LLE}, X::AbstractMatrix{T};
+                    d::Int=2, k::Int=12, tol::Real=1e-5) where {T<:Real}
     # Construct NN graph
     D, E = find_nn(X, k)
+    _, C = largest_component(SimpleWeightedGraph(adjmat(D,E)))
+    X = X[:, C]
+    n = length(C)
 
-    # Select largest connected component
-    cc = components(E)
-    c = cc[argmax(map(size, cc))]
-    if length(cc) == 1
-        c = cc[1]
-    else
-        c = cc[argmax(map(size, cc))]
-        # renumber edges
-        R = Dict(zip(c, collect(1:length(c))))
-        Ec = zeros(Int,k,length(c))
-        for i = 1 : length(c)
-            Ec[:,i] = map(i->get(R,i,0), E[:,c[i]])
+    # Correct indexes of neighbors if more then one connected component
+    Ec = E
+    if size(E,2) != n
+        R = Dict(zip(C, collect(1:n)))
+        Ec = zeros(Int,k,n)
+        for i in 1 : n
+            Ec[:,i] = map(j->get(R,j,C[i]), E[:,C[i]])
         end
-        E = Ec
-        X = X[:,c]
     end
 
     if k > d
-        @warn("K>D: regularization will be used")
-        tol = 1e-5
+        @warn("k > d: regularization will be used")
     else
         tol = 0
     end
 
-    # Reconstruct weights
-    W = zeros(k, n)
-    for i = 1 : n
-        Z = X[:, E[:,i]] .- X[:,i]
-        C = transpose(Z)*Z
-        C = C + diagm(0 => fill(one(T), k)) * tol * tr(C)
-        wi = vec(C\ones(k, 1))
-        W[:, i] = wi./sum(wi)
-    end
-
-    # Compute embedding
+    # Reconstruct weights and compute embedding:
+    # M = (I - w)'(I - w) = I - w'I - Iw + w'w
     M = spdiagm(0 => fill(one(T), n))
-    for i = 1 : n
-        w = W[:, i]
-        jj = E[:, i]
-        M[i,jj] = M[i,jj] - w
-        M[jj,i] = M[jj,i] - w
-        M[jj,jj] = M[jj,jj] + w*transpose(w)
+    Ones = fill(one(T), k, 1)
+    for i in 1 : n
+        J = Ec[:,i]
+        Z = view(X, :, J) .- view(X, :, i)
+        G = transpose(Z)*Z
+        G += I * tol # regularize
+        w = vec(G \ Ones)
+        w ./= sum(w)
+        ww = w*transpose(w)
+        for (l, j) in enumerate(J)
+            M[i,j] -= w[l]
+            M[j,i] -= w[l]
+            for (m, jj) in enumerate(J)
+                M[j,jj] = ww[l,m]
+            end
+        end
     end
 
     λ, V = decompose(M, d)

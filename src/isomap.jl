@@ -18,7 +18,7 @@ outdim(M::Isomap) = size(M.proj, 1)
 projection(M::Isomap) = M.proj
 
 neighbors(M::Isomap) = M.k
-ccomponent(M::Isomap) = M.component
+vertices(M::Isomap) = M.component
 
 ## show & dump
 function show(io::IO, M::Isomap)
@@ -43,32 +43,15 @@ end
 ## interface functions
 function transform(::Type{Isomap}, X::AbstractMatrix{T}; k::Int=12, d::Int=2) where {T<:Real}
     # Construct NN graph
-    D, E = find_nn(X, k, excluding=true)
-
-    # Select largest connected component
-    CC = components(E)
-    if length(CC) == 1
-        C = CC[1]
-        Dc = D
-        Ec = E
-    else
-        C = CC[argmax(map(size, CC))]
-        Dc = D[:,C]
-
-        # renumber edges
-        R = Dict(zip(C, 1:length(C)))
-        Ec = zeros(Int,k,length(C))
-        for i = 1 : length(C)
-            Ec[:,i] = map(i->get(R,i,0), E[:,C[i]])
-        end
-    end
+    D, E = find_nn(X, k)
+    G, C = largest_component(SimpleWeightedGraph(adjmat(D,E)))
 
     # Compute shortest path for every point
-    n = size(Dc,2)
+    n = length(C)
     DD = zeros(T, n, n)
-    for i=1:n
-        P, PD = dijkstra(Dc, Ec, i)
-        DD[i,:] = PD
+    for i in 1:n
+        dj = dijkstra_shortest_paths(G, i)
+        DD[i,:] = dj.dists
     end
 
     # Perform MDS

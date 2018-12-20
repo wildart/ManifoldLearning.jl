@@ -6,7 +6,7 @@
 #### DiffMap type
 struct DiffMap{T <: Real} <: AbstractDimensionalityReduction
     t::Int
-    ɛ::Float64
+    ɛ::T
     K::AbstractMatrix{T}
     proj::Projection{T}
 
@@ -38,20 +38,23 @@ function Base.dump(io::IO, M::DiffMap)
 end
 
 ## interface functions
-function transform(::Type{DiffMap}, X::AbstractMatrix{T}; d::Int=2, t::Int=1, ɛ::T=1.0) where {T<:Real}
-    transform!(fit(UnitRangeTransform, X), X)
+function transform(::Type{DiffMap}, X::AbstractMatrix{T}; d::Int=2, t::Int=1, ɛ::Real=1.0) where {T<:Real}
+    # rescale data
+    Xtr = transform(fit(UnitRangeTransform, X), X)
+    Xtr[findall(isnan, Xtr)] .= 0
 
-    sumX = sum(X.^ 2, dims=1)
-    K = exp.(( transpose(sumX) .+ sumX .- 2*transpose(X) * X ) ./ ɛ)
+    # compute kernel matrix
+    sumX = sum(Xtr.^ 2, dims=1)
+    K = exp.(( transpose(sumX) .+ sumX .- 2*transpose(Xtr) * Xtr ) ./ convert(T, ɛ))
 
     p = transpose(sum(K, dims=1))
-    K ./= ((p * transpose(p)) .^ t)
+    K ./= (p * transpose(p)) .^ convert(T, t)
     p = transpose(sqrt.(sum(K, dims=1)))
-    K ./= (p * transpose(p))
+    K ./= p * transpose(p)
 
     U, S, V = svd(K, full=true)
     U ./= U[:,1]
     Y = U[:,2:(d+1)]
 
-    return DiffMap{T}(t, ɛ, K, transpose(Y))
+    return DiffMap{T}(t, convert(T, ɛ), K, transpose(Y))
 end

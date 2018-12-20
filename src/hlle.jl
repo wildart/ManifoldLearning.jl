@@ -40,35 +40,36 @@ function transform(::Type{HLLE}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) wher
     n = size(X, 2)
 
     # Identify neighbors
-    D, I = find_nn(X, k)
+    D, E = find_nn(X, k)
 
     # Obtain tangent coordinates and develop Hessian estimator
     hs = round(Int, d*(d+1)/2)
-    W = spzeros(hs*n,n)
+    W = spzeros(T, hs*n, n)
     for i=1:n
+        II = @view E[:,i]
         # re-center points in neighborhood
-        μ = mean(X[:,I[:,i]], dims=2)
-        N = X[:,I[:,i]] .- μ
+        μ = mean(X[:, II], dims=2)
+        N = X[:, II] .- μ
         # calculate tangent coordinates
         #tc = svd(transpose(N)).U[:,1:d]
         tc = svd(N).V[:,1:d]
 
         # Develop Hessian estimator
-        Yi = [ones(k) tc zeros(k,hs)]
+        Yi = [ones(T, k) tc zeros(T, k, hs)]
         for ii=1:d
             Yi[:,d+ii+1] = tc[:,ii].^2
         end
-        yi = 2(1+d)
+        yi = 2*(1+d)
         for (ii,jj) in combinations(1:d,2)
             Yi[:, yi] = tc[:, ii] .* tc[:, jj]
             yi += 1
         end
         F = qr(Yi)
         H = transpose(Matrix(F.Q)[:,d+2:end])
-        W[(i-1)*hs .+ (1:hs),I[:,i]] = H
+        W[(i-1)*hs .+ (1:hs), II] = H
     end
 
     # decomposition
     λ, V = decompose(transpose(W)*W, d)
-    return HLLE{T}(k, λ, transpose(V) .* sqrt(n))
+    return HLLE{T}(k, λ, transpose(V) .* convert(T, sqrt(n)))
 end

@@ -21,7 +21,7 @@ projection(M::LEM) = M.proj
 
 eigvals(M::LEM) = M.λ
 neighbors(M::LEM) = M.k
-ccomponent(M::LEM) = M.component
+vertices(M::LEM) = M.component
 
 ## show & dump
 function show(io::IO, M::LEM)
@@ -38,26 +38,17 @@ function dump(io::IO, M::LEM)
 end
 
 ## interface functions
-function transform(::Type{LEM}, X::AbstractMatrix{T}; d::Int=2, k::Int=12, t::T=1.0) where {T<:Real}
-    n = size(X, 2)
-
+function transform(::Type{LEM}, X::AbstractMatrix{T}; d::Int=2, k::Int=12, t::Real=1.0) where {T<:Real}
     # Construct NN graph
     D, E = find_nn(X, k)
+    G, C = largest_component(SimpleWeightedGraph(adjmat(D,E)))
 
-    W = zeros(T,n,n)
-    for i = 1 : n
-        jj = E[:, i]
-        W[i,jj] = D[:, i]
-    end
+    # Compute weights
+    W = weights(G)
     W .^= 2
     W ./= maximum(W)
 
-    # Select largest connected component
-    CC = components(E)
-    C = length(CC) == 1 ? CC[1] : CC[argmax(map(size, CC))]
-
-    # Compute weights
-    W[W .> eps(T)] = exp.(-W[W .> eps(T)] ./ t)
+    W[W .> eps(T)] = exp.(-W[W .> eps(T)] ./ convert(T,t))
     D = diagm(0 => sum(W, dims=2)[:])
     L = D - W
 
