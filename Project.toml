@@ -3,16 +3,17 @@ uuid = "f45ceb61-4ded-4ddf-9bf9-a82666d975fe"
 keywords = ["manifold learning", "dimensionality reduction", "nonlinear"]
 license = "MIT"
 desc = "A Julia package for nonlinear dimensionality reduction"
-repository = "https://github.com/JuliaStats/MultivariateStats.jl.git"
+repository = "https://github.com/JuliaStats/ManifoldLearning.jl.git"
 version = "0.3.0"
 
 [deps]
 Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
-DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 MultivariateStats = "6f286f6a-111f-5878-ab1e-185364afe411"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+LightGraphs = "093fc24a-ae57-5d10-9952-331d41423f4d"
+SimpleWeightedGraphs = "47aef6b3-ad0c-573a-a1e2-d07658019622"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
