@@ -3,7 +3,8 @@ module ManifoldLearning
     import Base: show, dump
     import SparseArrays: AbstractSparseArray, SparseMatrixCSC, spzeros, spdiagm, findnz
     import Statistics: mean, std
-    import MultivariateStats: outdim, projection, transform, classical_mds
+    import StatsBase: StatsBase, fit, standardize
+    import MultivariateStats: fit, outdim, projection, transform, MDS
     import LinearAlgebra: eigvals, mul!, svd, qr, Symmetric, eigen, eigen!, diagm, tr, rmul!, I
     import LightGraphs: neighbors, nv, add_edge!, connected_components, vertices,
                         dijkstra_shortest_paths, induced_subgraph, weights

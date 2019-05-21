@@ -1,8 +1,6 @@
 using ManifoldLearning
 using Test
 
-include("transformations.jl")
-
 @testset "ManifoldLearning" begin
 
     # setup parameters
@@ -17,7 +15,7 @@ include("transformations.jl")
 
     # test algorithms
     @testset for algorithm in [Isomap, LEM, LLE, HLLE, LTSA, DiffMap]
-        for (k, T) in zip([5, 12], [Float64, Float32])
+        for (k, T) in zip([5, 12], [Float32, Float64])
             # construct KW parameters
             kwargs = [:d=>d]
             if algorithm == DiffMap
@@ -25,6 +23,7 @@ include("transformations.jl")
             else
                 push!(kwargs, :k => k)
             end
+            println("$algorithm: $T, $k")
 
             # call transformation
             Y = transform(algorithm, convert(Array{T}, X); kwargs...)

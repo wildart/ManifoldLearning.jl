@@ -55,7 +55,8 @@ function transform(::Type{Isomap}, X::AbstractMatrix{T}; k::Int=12, d::Int=2) wh
     end
 
     # Perform MDS
-    Y = classical_mds(DD, d)
+    M = fit(MDS, DD, maxoutdim=d, distances=true)
+    Y = transform(M)
 
     return Isomap{T}(k, Y, C)
 end
