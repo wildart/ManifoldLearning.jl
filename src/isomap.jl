@@ -6,42 +6,40 @@
 #### Isomap type
 struct Isomap{T <: Real} <: AbstractDimensionalityReduction
     k::Int
-    proj::Projection{T}
+    model::KernelPCA
     component::AbstractVector{Int}
 
-    Isomap{T}(k::Int, proj::Projection{T}) where T = new(k, proj)
-    Isomap{T}(k::Int, proj::Projection{T}, cc::AbstractVector{Int}) where T = new(k, proj, cc)
+    Isomap{T}(k::Int, model::KernelPCA) where T = new(k, model)
+    Isomap{T}(k::Int, model::KernelPCA, cc::AbstractVector{Int}) where T = new(k, model, cc)
 end
 
 ## properties
-outdim(M::Isomap) = size(M.proj, 1)
-projection(M::Isomap) = M.proj
+outdim(R::Isomap) = outdim(R.model)
+eigvals(R::Isomap) = principalvars(R.model)
+neighbors(R::Isomap) = R.k
+vertices(R::Isomap) = R.component
+transform(R::Isomap) = transform(R.model)
 
-neighbors(M::Isomap) = M.k
-vertices(M::Isomap) = M.component
-
-## show & dump
-function show(io::IO, M::Isomap)
-    print(io, "Isomap(outdim = $(outdim(M)), neighbors = $(neighbors(M)))")
-end
-
-function dump(io::IO, M::Isomap)
-    show(io, M)
-    # try # Print largest connected component
-    #     lcc = ccomponent(M)
-    #     println(io, "connected component: ")
-    #     Base.showarray(io, transpose(lcc), header=false, repr=false)
-    #     println(io)
-    # end
-    println(io, "eigenvalues: ")
-    Base.showarray(io, transpose(M.λ), header=false, repr=false)
-    println(io)
-    println(io, "projection:")
-    Base.showarray(io, M.proj, header=false, repr=false)
+## show
+summary(io::IO, R::Isomap) = print(io, "Isomap(outdim = $(outdim(R)), neighbors = $(neighbors(R)))")
+function show(io::IO, R::Isomap)
+    summary(io, R)
+    if !get(io, :short, true)
+        io = IOContext(io, :limit=>true)
+        println(io)
+        println(io, "connected component: ")
+        Base.show_vector(io, vertices(R))
+        println(io)
+        println(io, "eigenvalues: ")
+        Base.show_vector(io, eigvals(R))
+        println(io)
+        println(io, "projection:")
+        Base.print_matrix(io, transform(R), "[", ",","]")
+    end
 end
 
 ## interface functions
-function transform(::Type{Isomap}, X::AbstractMatrix{T}; k::Int=12, d::Int=2) where {T<:Real}
+function fit(::Type{Isomap}, X::AbstractMatrix{T}; k::Int=12, maxoutdim::Int=2) where {T<:Real}
     # Construct NN graph
     D, E = find_nn(X, k)
     G, C = largest_component(SimpleWeightedGraph(adjmat(D,E)))
@@ -54,9 +52,12 @@ function transform(::Type{Isomap}, X::AbstractMatrix{T}; k::Int=12, d::Int=2) wh
         DD[i,:] = dj.dists
     end
 
-    # Perform MDS
-    M = fit(MDS, DD, maxoutdim=d, distances=true)
-    Y = transform(M)
+    broadcast!(x->-x*x/2, DD, DD)
+    broadcast!((x,y)->(x+y)/2, DD, DD, DD') # remove roundoff error
+    M = fit(KernelPCA, DD, kernel=nothing, maxoutdim=maxoutdim)
 
-    return Isomap{T}(k, Y, C)
+    return Isomap{T}(k, M, C)
 end
+
+@deprecate transform(Isomap, X; k=k, d=d) fit(Isomap, X; k=k, maxoutdim=d)
+@deprecate projection(R::Isomap) transform(R)

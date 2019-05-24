@@ -23,7 +23,6 @@ using Test
             else
                 push!(kwargs, :k => k)
             end
-            println("$algorithm: $T, $k")
 
             # call transformation
             Y = transform(algorithm, convert(Array{T}, X); kwargs...)
