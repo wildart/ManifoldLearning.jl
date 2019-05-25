@@ -1,5 +1,8 @@
 using ManifoldLearning
 using Test
+import Random
+
+Random.seed!(3483743871)
 
 @testset "ManifoldLearning" begin
 
