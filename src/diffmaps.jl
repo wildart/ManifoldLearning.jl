@@ -23,15 +23,13 @@ kernel(R::DiffMap) = R.K
 summary(io::IO, R::DiffMap) = print(io, "Diffusion Maps(outdim = $(outdim(R)), t = $(R.t), ɛ = $(R.ɛ))")
 function show(io::IO, R::DiffMap)
     summary(io, R)
-    if !get(io, :short, true)
-        io = IOContext(io, :limit=>true)
-        println(io)
-        println(io, "Kernel: ")
-        Base.print_matrix(io, R.K, "[", ",","]")
-        println(io)
-        println(io, "Embedding:")
-        Base.print_matrix(io, transform(R), "[", ",","]")
-    end
+    io = IOContext(io, :limit=>true)
+    println(io)
+    println(io, "Kernel: ")
+    Base.print_matrix(io, R.K, "[", ",","]")
+    println(io)
+    println(io, "Embedding:")
+    Base.print_matrix(io, transform(R), "[", ",","]")
 end
 
 ## interface functions

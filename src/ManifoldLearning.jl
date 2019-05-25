@@ -43,20 +43,19 @@ module ManifoldLearning
     include("lem.jl")
     include("diffmaps.jl")
 
+    show(io::IO, ::MIME"text/plain", R::T) where {T<:AbstractDimensionalityReduction} = summary(io, R)
     function show(io::IO, R::T) where {T<:AbstractDimensionalityReduction}
         summary(io, R)
-        if !get(io, :short, true)
-            io = IOContext(io, :limit=>true)
-            println(io)
-            println(io, "connected component: ")
-            Base.show_vector(io, vertices(R))
-            println(io)
-            println(io, "eigenvalues: ")
-            Base.show_vector(io, eigvals(R))
-            println(io)
-            println(io, "projection:")
-            Base.print_matrix(io, transform(R), "[", ",","]")
-        end
+        io = IOContext(io, :limit=>true)
+        println(io)
+        println(io, "connected component: ")
+        Base.show_vector(io, vertices(R))
+        println(io)
+        println(io, "eigenvalues: ")
+        Base.show_vector(io, eigvals(R))
+        println(io)
+        println(io, "projection:")
+        Base.print_matrix(io, transform(R), "[", ",","]")
     end
 
     # deprecated functions

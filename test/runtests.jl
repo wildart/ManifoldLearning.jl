@@ -33,7 +33,7 @@ Random.seed!(3483743871)
             # test results
             @test outdim(Y) == d
             @test size(transform(Y), 2) == size(X, 2)
-            @test length(split(sprint(show, Y; context=:short => false), '\n')) > 1
+            @test length(split(sprint(show, Y), '\n')) > 1
             if algorithm !== DiffMap
                 @test neighbors(Y) == k
                 @test length(eigvals(Y)) == d
