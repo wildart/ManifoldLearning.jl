@@ -30,7 +30,7 @@ function transform(::Type{HLLE}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) wher
     D, E = find_nn(X, k)
 
     # Obtain tangent coordinates and develop Hessian estimator
-    hs = round(Int, d*(d+1)/2)
+    hs = (d*(d+1)) >> 1
     W = spzeros(T, hs*n, n)
     for i=1:n
         II = @view E[:,i]
@@ -47,13 +47,13 @@ function transform(::Type{HLLE}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) wher
             Yi[:,d+ii+1] = tc[:,ii].^2
         end
         yi = 2*(1+d)
-        for (ii,jj) in combinations(1:d,2)
+        for (ii,jj) in combinations(1:d, 2)
             Yi[:, yi] = tc[:, ii] .* tc[:, jj]
             yi += 1
         end
         F = qr(Yi)
-        H = transpose(Matrix(F.Q)[:,d+2:end])
-        W[(i-1)*hs .+ (1:hs), II] = H
+        H = transpose(F.Q[:,(end-(hs-1)):end])
+        W[(1:hs).+(i-1)*hs, II] = H
     end
 
     # decomposition
