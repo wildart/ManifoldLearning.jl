@@ -24,4 +24,5 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 test = ["Test"]
 
 [compat]
+julia = "1"
 StatsBase = ">=0.29"
