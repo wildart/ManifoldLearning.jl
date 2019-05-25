@@ -13,25 +13,12 @@ struct LLE{T <: Real} <: AbstractDimensionalityReduction
 end
 
 ## properties
-outdim(M::LLE) = size(M.proj, 1)
-projection(M::LLE) = M.proj
+outdim(R::LLE) = size(R.proj, 1)
+eigvals(R::LLE) = R.λ
+neighbors(R::LLE) = R.k
 
-eigvals(M::LLE) = M.λ
-neighbors(M::LLE) = M.k
-
-## show & dump
-function show(io::IO, M::LLE)
-    print(io, "LLE(outdim = $(outdim(M)), neighbors = $(neighbors(M)))")
-end
-
-function dump(io::IO, M::LLE)
-    show(io, M)
-    println(io, "eigenvalues: ")
-    Base.showarray(io, transpose(M.λ), header=false, repr=false)
-    println(io)
-    println(io, "projection:")
-    Base.showarray(io, M.proj, header=false, repr=false)
-end
+## show
+summary(io::IO, R::LLE) = print(io, "LLE(outdim = $(outdim(R)), neighbors = $(neighbors(R)))")
 
 ## interface functions
 function transform(::Type{LLE}, X::AbstractMatrix{T};
@@ -82,3 +69,5 @@ function transform(::Type{LLE}, X::AbstractMatrix{T};
     λ, V = decompose(M, d)
     return LLE{T}(k, λ, rmul!(transpose(V), sqrt(n)))
 end
+
+transform(R::LLE) = R.proj

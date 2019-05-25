@@ -18,25 +18,9 @@ outdim(R::Isomap) = outdim(R.model)
 eigvals(R::Isomap) = principalvars(R.model)
 neighbors(R::Isomap) = R.k
 vertices(R::Isomap) = R.component
-transform(R::Isomap) = transform(R.model)
 
 ## show
 summary(io::IO, R::Isomap) = print(io, "Isomap(outdim = $(outdim(R)), neighbors = $(neighbors(R)))")
-function show(io::IO, R::Isomap)
-    summary(io, R)
-    if !get(io, :short, true)
-        io = IOContext(io, :limit=>true)
-        println(io)
-        println(io, "connected component: ")
-        Base.show_vector(io, vertices(R))
-        println(io)
-        println(io, "eigenvalues: ")
-        Base.show_vector(io, eigvals(R))
-        println(io)
-        println(io, "projection:")
-        Base.print_matrix(io, transform(R), "[", ",","]")
-    end
-end
 
 ## interface functions
 function fit(::Type{Isomap}, X::AbstractMatrix{T}; k::Int=12, maxoutdim::Int=2) where {T<:Real}
@@ -59,5 +43,6 @@ function fit(::Type{Isomap}, X::AbstractMatrix{T}; k::Int=12, maxoutdim::Int=2) 
     return Isomap{T}(k, M, C)
 end
 
+transform(R::Isomap) = transform(R.model)
+
 @deprecate transform(Isomap, X; k=k, d=d) fit(Isomap, X; k=k, maxoutdim=d)
-@deprecate projection(R::Isomap) transform(R)

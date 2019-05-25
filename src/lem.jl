@@ -16,26 +16,13 @@ struct LEM{T <: Real} <: AbstractDimensionalityReduction
 end
 
 ## properties
-outdim(M::LEM) = size(M.proj, 1)
-projection(M::LEM) = M.proj
+outdim(R::LEM) = size(R.proj, 1)
+eigvals(R::LEM) = R.λ
+neighbors(R::LEM) = R.k
+vertices(R::LEM) = R.component
 
-eigvals(M::LEM) = M.λ
-neighbors(M::LEM) = M.k
-vertices(M::LEM) = M.component
-
-## show & dump
-function show(io::IO, M::LEM)
-    print(io, "Laplacian Eigenmaps(outdim = $(outdim(M)), neighbors = $(neighbors(M)), t = $(M.t))")
-end
-
-function dump(io::IO, M::LEM)
-    show(io, M)
-    println(io, "eigenvalues: ")
-    Base.showarray(io, transpose(eigvals(M)), header=false, repr=false)
-    println(io)
-    println(io, "projection:")
-    Base.showarray(io, projection(M), header=false, repr=false)
-end
+## show
+summary(io::IO, R::LEM) = print(io, "Laplacian Eigenmaps(outdim = $(outdim(R)), neighbors = $(neighbors(R)), t = $(R.t))")
 
 ## interface functions
 function transform(::Type{LEM}, X::AbstractMatrix{T}; d::Int=2, k::Int=12, t::Real=1.0) where {T<:Real}
@@ -55,3 +42,5 @@ function transform(::Type{LEM}, X::AbstractMatrix{T}; d::Int=2, k::Int=12, t::Re
     λ, V = decompose(L, D, d)
     return LEM{T}(k, λ, t, transpose(V), C)
 end
+
+transform(R::LEM) = R.proj

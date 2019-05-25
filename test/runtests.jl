@@ -30,9 +30,14 @@ using Test
             # test results
             @test outdim(Y) == d
             @test size(projection(Y), 2) == size(X, 2)
-            length(methods(neighbors, (algorithm,))) > 0 && @test neighbors(Y) == k
-            length(methods(vertices, (algorithm,))) > 0 && @test length(vertices(Y)) > 1
-            length(methods(eigvals, (algorithm,))) > 0 && @test length(eigvals(Y)) == d
+            @test length(split(sprint(show, Y; context=:short => false), '\n')) > 1
+            if algorithm !== DiffMap
+                @test neighbors(Y) == k
+                @test length(eigvals(Y)) == d
+            end
+            if algorithm === Isomap || algorithm === LEM
+                @test length(vertices(Y)) > 1
+            end
         end
     end
 

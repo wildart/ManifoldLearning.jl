@@ -14,25 +14,12 @@ struct LTSA{T <: Real} <: AbstractDimensionalityReduction
 end
 
 ## properties
-outdim(M::LTSA) = size(M.proj, 1)
-projection(M::LTSA) = M.proj
+outdim(R::LTSA) = size(R.proj, 1)
+eigvals(R::LTSA) = R.λ
+neighbors(R::LTSA) = R.k
 
-eigvals(M::LTSA) = M.λ
-neighbors(M::LTSA) = M.k
-
-## show & dump
-function show(io::IO, M::LTSA)
-    print(io, "LTSA(outdim = $(outdim(M)), neighbors = $(neighbors(M)))")
-end
-
-function dump(io::IO, M::LTSA)
-    show(io, M)
-    println(io, "eigenvalues: ")
-    Base.showarray(io, transpose(M.λ), header=false, repr=false)
-    println(io)
-    println(io, "projection:")
-    Base.showarray(io, M.proj, header=false, repr=false)
-end
+## show
+summary(io::IO, R::LTSA) = print(io, "LTSA(outdim = $(outdim(R)), neighbors = $(neighbors(R)))")
 
 ## interface functions
 function transform(::Type{LTSA}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) where {T<:Real}
@@ -61,3 +48,5 @@ function transform(::Type{LTSA}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) wher
     λ, V = decompose(B, d)
     return LTSA{T}(k, λ, transpose(V))
 end
+
+transform(R::LTSA) = R.proj

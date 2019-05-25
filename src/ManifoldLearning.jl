@@ -31,6 +31,7 @@ module ManifoldLearning
     projection          # the projection matrix (deprecated)
 
     abstract type AbstractDimensionalityReduction end
+    vertices(R::AbstractDimensionalityReduction) = Int[]
 
     const Projection{T <: Real} = AbstractMatrix{T}
 
@@ -42,7 +43,27 @@ module ManifoldLearning
     include("lem.jl")
     include("diffmaps.jl")
 
-    # for algorithm in [Isomap, LEM, LLE, HLLE, LTSA, DiffMap]
-    #     @deprecate transform(algorithm, k=k, d=d) transform(fit(algorithm, k=k, d=d))
-    # end
+    function show(io::IO, R::T) where {T<:AbstractDimensionalityReduction}
+        summary(io, R)
+        if !get(io, :short, true)
+            io = IOContext(io, :limit=>true)
+            println(io)
+            println(io, "connected component: ")
+            Base.show_vector(io, vertices(R))
+            println(io)
+            println(io, "eigenvalues: ")
+            Base.show_vector(io, eigvals(R))
+            println(io)
+            println(io, "projection:")
+            Base.print_matrix(io, transform(R), "[", ",","]")
+        end
+    end
+
+    # deprecated functions
+    depr = :()
+    for Alg in [Isomap, LEM, LLE, HLLE, LTSA, DiffMap]
+        # @deprecate transform(algorithm, X, k=k, d=d) transform(fit(algorithm, X; k=k, maxoutdim=d))
+        push!(depr.args, :(@deprecate projection(R::$Alg) transform(R)))
+    end
+    eval(depr)
 end

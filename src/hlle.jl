@@ -15,25 +15,12 @@ struct HLLE{T <: Real} <: AbstractDimensionalityReduction
 end
 
 ## properties
-outdim(M::HLLE) = size(M.proj, 1)
-projection(M::HLLE) = M.proj
+outdim(R::HLLE) = size(R.proj, 1)
+eigvals(R::HLLE) = R.λ
+neighbors(R::HLLE) = R.k
 
-eigvals(M::HLLE) = M.λ
-neighbors(M::HLLE) = M.k
-
-## show & dump
-function show(io::IO, M::HLLE)
-    print(io, "Hessian Eigenmaps(outdim = $(outdim(M)), neighbors = $(neighbors(M)))")
-end
-
-function dump(io::IO, M::HLLE)
-    show(io, M)
-    println(io, "eigenvalues: ")
-    Base.showarray(io, transpose(M.λ), header=false, repr=false)
-    println(io)
-    println(io, "projection:")
-    Base.showarray(io, M.proj, header=false, repr=false)
-end
+## show
+summary(io::IO, R::HLLE) = print(io, "Hessian Eigenmaps(outdim = $(outdim(R)), neighbors = $(neighbors(R)))")
 
 ## interface functions
 function transform(::Type{HLLE}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) where {T<:Real}
@@ -73,3 +60,5 @@ function transform(::Type{HLLE}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) wher
     λ, V = decompose(transpose(W)*W, d)
     return HLLE{T}(k, λ, transpose(V) .* convert(T, sqrt(n)))
 end
+
+transform(R::HLLE) = R.proj

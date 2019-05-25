@@ -14,27 +14,24 @@ struct DiffMap{T <: Real} <: AbstractDimensionalityReduction
 end
 
 ## properties
-outdim(M::DiffMap) = size(M.proj, 1)
-projection(M::DiffMap) = M.proj
-kernel(M::DiffMap) = M.K
+outdim(R::DiffMap) = size(R.proj, 1)
 
-## show & dump
-function show(io::IO, M::DiffMap)
-    print(io, "Diffusion Maps(outdim = $(outdim(M)), t = $(M.t), ɛ = $(M.ɛ))")
-end
+## custom
+kernel(R::DiffMap) = R.K
 
-function Base.dump(io::IO, M::DiffMap)
-    println(io, "Dimensionality:")
-    show(io, outdim(M))
-    print(io, "\n\n")
-    println(io, "Timesteps:")
-    show(io, M.t)
-    print(io, "\n\n")
-    println(io, "Kernel: ")
-    Base.showarray(io, M.K, false, header=false)
-    println(io)
-    println(io, "Embedding:")
-    Base.showarray(io, projection(M), false, header=false)
+## show
+summary(io::IO, R::DiffMap) = print(io, "Diffusion Maps(outdim = $(outdim(R)), t = $(R.t), ɛ = $(R.ɛ))")
+function show(io::IO, R::DiffMap)
+    summary(io, R)
+    if !get(io, :short, true)
+        io = IOContext(io, :limit=>true)
+        println(io)
+        println(io, "Kernel: ")
+        Base.print_matrix(io, R.K, "[", ",","]")
+        println(io)
+        println(io, "Embedding:")
+        Base.print_matrix(io, transform(R), "[", ",","]")
+    end
 end
 
 ## interface functions
@@ -58,3 +55,5 @@ function transform(::Type{DiffMap}, X::AbstractMatrix{T}; d::Int=2, t::Int=1, ɛ
 
     return DiffMap{T}(t, convert(T, ɛ), K, transpose(Y))
 end
+
+transform(R::DiffMap) = R.proj
