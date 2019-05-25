@@ -1,5 +1,5 @@
 name = "ManifoldLearning"
-uuid = "f45ceb61-4ded-4ddf-9bf9-a82666d975fe"
+uuid = "06eb3307-b2af-5a2a-abea-d33192699d32"
 keywords = ["manifold learning", "dimensionality reduction", "nonlinear"]
 license = "MIT"
 desc = "A Julia package for nonlinear dimensionality reduction"
