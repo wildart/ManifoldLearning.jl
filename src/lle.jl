@@ -21,8 +21,8 @@ neighbors(R::LLE) = R.k
 summary(io::IO, R::LLE) = print(io, "LLE(outdim = $(outdim(R)), neighbors = $(neighbors(R)))")
 
 ## interface functions
-function transform(::Type{LLE}, X::AbstractMatrix{T};
-                    d::Int=2, k::Int=12, tol::Real=1e-5) where {T<:Real}
+function fit(::Type{LLE}, X::AbstractMatrix{T};
+             maxoutdim::Int=2, k::Int=12, tol::Real=1e-5) where {T<:Real}
     # Construct NN graph
     D, E = find_nn(X, k)
     _, C = largest_component(SimpleWeightedGraph(adjmat(D,E)))
@@ -39,8 +39,8 @@ function transform(::Type{LLE}, X::AbstractMatrix{T};
         end
     end
 
-    if k > d
-        @warn("k > d: regularization will be used")
+    if k > maxoutdim
+        @warn("k > maxoutdim: regularization will be used")
     else
         tol = 0
     end
@@ -66,7 +66,7 @@ function transform(::Type{LLE}, X::AbstractMatrix{T};
         end
     end
 
-    λ, V = decompose(M, d)
+    λ, V = decompose(M, maxoutdim)
     return LLE{T}(k, λ, rmul!(transpose(V), sqrt(n)))
 end
 

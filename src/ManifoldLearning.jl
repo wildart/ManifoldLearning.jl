@@ -60,10 +60,6 @@ module ManifoldLearning
     end
 
     # deprecated functions
-    depr = :()
-    for Alg in [Isomap, LEM, LLE, HLLE, LTSA, DiffMap]
-        # @deprecate transform(algorithm, X, k=k, d=d) transform(fit(algorithm, X; k=k, maxoutdim=d))
-        push!(depr.args, :(@deprecate projection(R::$Alg) transform(R)))
-    end
-    eval(depr)
+    @deprecate transform(DimensionalityReduction, X; k=k, d=d) fit(DimensionalityReduction, X; k=k, maxoutdim=d)
+    @deprecate projection(DimensionalityReductionModel) transform(DimensionalityReductionModel)
 end

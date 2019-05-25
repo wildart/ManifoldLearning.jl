@@ -23,14 +23,14 @@ neighbors(R::HLLE) = R.k
 summary(io::IO, R::HLLE) = print(io, "Hessian Eigenmaps(outdim = $(outdim(R)), neighbors = $(neighbors(R)))")
 
 ## interface functions
-function transform(::Type{HLLE}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) where {T<:Real}
+function fit(::Type{HLLE}, X::AbstractMatrix{T}; maxoutdim::Int=2, k::Int=12) where {T<:Real}
     n = size(X, 2)
 
     # Identify neighbors
     D, E = find_nn(X, k)
 
     # Obtain tangent coordinates and develop Hessian estimator
-    hs = (d*(d+1)) >> 1
+    hs = (maxoutdim*(maxoutdim+1)) >> 1
     W = spzeros(T, hs*n, n)
     for i=1:n
         II = @view E[:,i]
@@ -38,16 +38,15 @@ function transform(::Type{HLLE}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) wher
         μ = mean(X[:, II], dims=2)
         N = X[:, II] .- μ
         # calculate tangent coordinates
-        #tc = svd(transpose(N)).U[:,1:d]
-        tc = svd(N).V[:,1:d]
+        tc = svd(N).V[:,1:maxoutdim]
 
         # Develop Hessian estimator
         Yi = [ones(T, k) tc zeros(T, k, hs)]
-        for ii=1:d
-            Yi[:,d+ii+1] = tc[:,ii].^2
+        for ii=1:maxoutdim
+            Yi[:,maxoutdim+ii+1] = tc[:,ii].^2
         end
-        yi = 2*(1+d)
-        for (ii,jj) in combinations(1:d, 2)
+        yi = 2*(1+maxoutdim)
+        for (ii,jj) in combinations(1:maxoutdim, 2)
             Yi[:, yi] = tc[:, ii] .* tc[:, jj]
             yi += 1
         end
@@ -57,7 +56,7 @@ function transform(::Type{HLLE}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) wher
     end
 
     # decomposition
-    λ, V = decompose(transpose(W)*W, d)
+    λ, V = decompose(transpose(W)*W, maxoutdim)
     return HLLE{T}(k, λ, transpose(V) .* convert(T, sqrt(n)))
 end
 

@@ -25,7 +25,7 @@ vertices(R::LEM) = R.component
 summary(io::IO, R::LEM) = print(io, "Laplacian Eigenmaps(outdim = $(outdim(R)), neighbors = $(neighbors(R)), t = $(R.t))")
 
 ## interface functions
-function transform(::Type{LEM}, X::AbstractMatrix{T}; d::Int=2, k::Int=12, t::Real=1.0) where {T<:Real}
+function fit(::Type{LEM}, X::AbstractMatrix{T}; maxoutdim::Int=2, k::Int=12, t::Real=1.0) where {T<:Real}
     # Construct NN graph
     D, E = find_nn(X, k)
     G, C = largest_component(SimpleWeightedGraph(adjmat(D,E)))
@@ -39,7 +39,7 @@ function transform(::Type{LEM}, X::AbstractMatrix{T}; d::Int=2, k::Int=12, t::Re
     D = diagm(0 => sum(W, dims=2)[:])
     L = D - W
 
-    λ, V = decompose(L, D, d)
+    λ, V = decompose(L, D, maxoutdim)
     return LEM{T}(k, λ, t, transpose(V), C)
 end
 

@@ -22,7 +22,7 @@ neighbors(R::LTSA) = R.k
 summary(io::IO, R::LTSA) = print(io, "LTSA(outdim = $(outdim(R)), neighbors = $(neighbors(R)))")
 
 ## interface functions
-function transform(::Type{LTSA}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) where {T<:Real}
+function fit(::Type{LTSA}, X::AbstractMatrix{T}; maxoutdim::Int=2, k::Int=12) where {T<:Real}
     n = size(X, 2)
 
     # Construct NN graph
@@ -37,7 +37,7 @@ function transform(::Type{LTSA}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) wher
         δ_x = X[:, II] .- μ
 
         # Compute orthogonal basis H of θ'
-        θ_t = svd(δ_x).V[:,1:d]
+        θ_t = svd(δ_x).V[:,1:maxoutdim]
 
         # Construct alignment matrix
         G = hcat(S, θ_t)
@@ -45,7 +45,7 @@ function transform(::Type{LTSA}, X::AbstractMatrix{T}; d::Int=2, k::Int=12) wher
     end
 
     # Align global coordinates
-    λ, V = decompose(B, d)
+    λ, V = decompose(B, maxoutdim)
     return LTSA{T}(k, λ, transpose(V))
 end
 

@@ -44,5 +44,3 @@ function fit(::Type{Isomap}, X::AbstractMatrix{T}; k::Int=12, maxoutdim::Int=2) 
 end
 
 transform(R::Isomap) = transform(R.model)
-
-@deprecate transform(Isomap, X; k=k, d=d) fit(Isomap, X; k=k, maxoutdim=d)

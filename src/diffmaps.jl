@@ -35,7 +35,7 @@ function show(io::IO, R::DiffMap)
 end
 
 ## interface functions
-function transform(::Type{DiffMap}, X::AbstractMatrix{T}; d::Int=2, t::Int=1, ɛ::Real=1.0) where {T<:Real}
+function fit(::Type{DiffMap}, X::AbstractMatrix{T}; maxoutdim::Int=2, t::Int=1, ɛ::Real=1.0) where {T<:Real}
     # rescale data
     Xtr = standardize(StatsBase.UnitRangeTransform, X)
     Xtr[findall(isnan, Xtr)] .= 0
@@ -51,7 +51,7 @@ function transform(::Type{DiffMap}, X::AbstractMatrix{T}; d::Int=2, t::Int=1, ɛ
 
     U, S, V = svd(K, full=true)
     U ./= U[:,1]
-    Y = U[:,2:(d+1)]
+    Y = U[:,2:(maxoutdim+1)]
 
     return DiffMap{T}(t, convert(T, ɛ), K, transpose(Y))
 end

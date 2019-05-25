@@ -20,7 +20,7 @@ Random.seed!(3483743871)
     @testset for algorithm in [Isomap, LEM, LLE, HLLE, LTSA, DiffMap]
         for (k, T) in zip([5, 12], [Float32, Float64])
             # construct KW parameters
-            kwargs = [:d=>d]
+            kwargs = [:maxoutdim=>d]
             if algorithm == DiffMap
                 push!(kwargs, :t => k)
             else
@@ -28,11 +28,11 @@ Random.seed!(3483743871)
             end
 
             # call transformation
-            Y = transform(algorithm, convert(Array{T}, X); kwargs...)
+            Y = fit(algorithm, convert(Array{T}, X); kwargs...)
 
             # test results
             @test outdim(Y) == d
-            @test size(projection(Y), 2) == size(X, 2)
+            @test size(transform(Y), 2) == size(X, 2)
             @test length(split(sprint(show, Y; context=:short => false), '\n')) > 1
             if algorithm !== DiffMap
                 @test neighbors(Y) == k
