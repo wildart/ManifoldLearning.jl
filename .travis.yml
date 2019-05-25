@@ -1,19 +1,16 @@
 language: julia
 os:
-    - osx
+#    - osx
     - linux
 julia:
-    - 0.7
     - 1.0
+    - 1.1
     - nightly
 notifications:
     email: false
 matrix:
   allow_failures:
     - julia: nightly
-script:
-    - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-    - julia -e 'using Pkg; Pkg.clone(pwd()); Pkg.build("ManifoldLearning"); Pkg.test("ManifoldLearning"; coverage=true)';
 after_success:
-    - julia -e 'using Pkg; cd(Pkg.dir("ManifoldLearning")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())';
+  - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
 

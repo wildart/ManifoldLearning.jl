@@ -1,27 +1,19 @@
-
 module ManifoldLearning
 
-    using MultivariateStats
-    using Statistics: mean, std
-    using LinearAlgebra
-    using SparseArrays: AbstractSparseArray, SparseMatrixCSC, spzeros
-
-    import Base: show, dump
-    import MultivariateStats: outdim, projection, transform
-    import LinearAlgebra: eigvals
+    import Base: show, summary
+    import SparseArrays: AbstractSparseArray, SparseMatrixCSC, spzeros, spdiagm, findnz
+    import Statistics: mean, std
+    import StatsBase: StatsBase, fit, standardize
+    import MultivariateStats: fit, outdim, projection, transform, KernelPCA, principalvars
+    import LinearAlgebra: eigvals, mul!, svd, qr, Symmetric, eigen, eigen!, diagm, tr, rmul!, I
+    import LightGraphs: neighbors, nv, add_edge!, connected_components, vertices,
+                        dijkstra_shortest_paths, induced_subgraph, weights
+    import SimpleWeightedGraphs: SimpleWeightedGraph
 
     export
 
-    ## common
-    outdim,             # the output dimension of the transformation
-    projection,         # the projection matrix
-    eigvals,            # eigenvalues from the spectral analysis
-    neighbors,          # the number of nearest neighbors used for building local structure
-    ccomponent,         # point indexes of the largest connected component
-
-    transform,          # perform the manifold learning
-
     # Transformation types
+    AbstractDimensionalityReduction,
     Isomap,             # Type: Isomap model
     HLLE,               # Type: Hessian Eigenmaps model
     LLE,                # Type: Locally Linear Embedding model
@@ -29,17 +21,45 @@ module ManifoldLearning
     LEM,                # Type: Laplacian Eigenmaps model
     DiffMap,            # Type: Diffusion maps model
 
-    # example dataset
-    swiss_roll          # swiss roll dataset generator
+    ## common interface
+    outdim,             # the output dimension of the transformation
+    fit,                # perform the manifold learning
+    transform,          # the projection matrix
+    eigvals,            # eigenvalues from the spectral analysis
+    neighbors,          # the number of nearest neighbors used for building local
+    vertices,           # vertices of largest connected component
+    projection          # the projection matrix (deprecated)
 
-    include("types.jl")
+    abstract type AbstractDimensionalityReduction end
+    vertices(R::AbstractDimensionalityReduction) = Int[]
+
+    const Projection{T <: Real} = AbstractMatrix{T}
+
     include("utils.jl")
-    include("transformations.jl")
     include("isomap.jl")
     include("hlle.jl")
     include("lle.jl")
     include("ltsa.jl")
     include("lem.jl")
     include("diffmaps.jl")
-end
 
+    function show(io::IO, R::T) where {T<:AbstractDimensionalityReduction}
+        summary(io, R)
+        if !get(io, :short, true)
+            io = IOContext(io, :limit=>true)
+            println(io)
+            println(io, "connected component: ")
+            Base.show_vector(io, vertices(R))
+            println(io)
+            println(io, "eigenvalues: ")
+            Base.show_vector(io, eigvals(R))
+            println(io)
+            println(io, "projection:")
+            Base.print_matrix(io, transform(R), "[", ",","]")
+        end
+    end
+
+    # deprecated functions
+    @deprecate transform(DimensionalityReduction, X; k=k, d=d) fit(DimensionalityReduction, X; k=k, maxoutdim=d)
+    @deprecate projection(DimensionalityReductionModel) transform(DimensionalityReductionModel)
+end

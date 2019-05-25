@@ -4,9 +4,9 @@
 # Coifman, R. & Lafon, S., Applied and Computational Harmonic Analysis, Elsevier, 2006, 21, 5-30
 
 #### DiffMap type
-struct DiffMap{T <: AbstractFloat} <: SpectralResult
+struct DiffMap{T <: Real} <: AbstractDimensionalityReduction
     t::Int
-    ɛ::Float64
+    ɛ::T
     K::AbstractMatrix{T}
     proj::Projection{T}
 
@@ -14,45 +14,46 @@ struct DiffMap{T <: AbstractFloat} <: SpectralResult
 end
 
 ## properties
-outdim(M::DiffMap) = size(M.proj, 1)
-projection(M::DiffMap) = M.proj
-kernel(M::DiffMap) = M.K
+outdim(R::DiffMap) = size(R.proj, 1)
 
-## show & dump
-function show(io::IO, M::DiffMap)
-    print(io, "Diffusion Maps(outdim = $(outdim(M)), t = $(M.t), ɛ = $(M.ɛ))")
-end
+## custom
+kernel(R::DiffMap) = R.K
 
-function Base.dump(io::IO, M::DiffMap)
-    println(io, "Dimensionality:")
-    show(io, outdim(M))
-    print(io, "\n\n")
-    println(io, "Timesteps:")
-    show(io, M.t)
-    print(io, "\n\n")
-    println(io, "Kernel: ")
-    Base.showarray(io, M.K, false, header=false)
-    println(io)
-    println(io, "Embedding:")
-    Base.showarray(io, projection(M), false, header=false)
+## show
+summary(io::IO, R::DiffMap) = print(io, "Diffusion Maps(outdim = $(outdim(R)), t = $(R.t), ɛ = $(R.ɛ))")
+function show(io::IO, R::DiffMap)
+    summary(io, R)
+    if !get(io, :short, true)
+        io = IOContext(io, :limit=>true)
+        println(io)
+        println(io, "Kernel: ")
+        Base.print_matrix(io, R.K, "[", ",","]")
+        println(io)
+        println(io, "Embedding:")
+        Base.print_matrix(io, transform(R), "[", ",","]")
+    end
 end
 
 ## interface functions
-function transform(::Type{DiffMap}, X::DenseMatrix{T};
-                   d::Int=2, t::Int=1, ɛ::T=1.0) where T<:AbstractFloat
-    transform!(fit(UnitRangeTransform, X), X)
+function fit(::Type{DiffMap}, X::AbstractMatrix{T}; maxoutdim::Int=2, t::Int=1, ɛ::Real=1.0) where {T<:Real}
+    # rescale data
+    Xtr = standardize(StatsBase.UnitRangeTransform, X)
+    Xtr[findall(isnan, Xtr)] .= 0
 
-    sumX = sum(X.^ 2, dims=1)
-    K = exp.(( transpose(sumX) .+ sumX .- 2*transpose(X) * X ) ./ ɛ)
+    # compute kernel matrix
+    sumX = sum(Xtr.^ 2, dims=1)
+    K = exp.(( transpose(sumX) .+ sumX .- 2*transpose(Xtr) * Xtr ) ./ convert(T, ɛ))
 
     p = transpose(sum(K, dims=1))
-    K ./= ((p * transpose(p)) .^ t)
+    K ./= (p * transpose(p)) .^ convert(T, t)
     p = transpose(sqrt.(sum(K, dims=1)))
-    K ./= (p * transpose(p))
+    K ./= p * transpose(p)
 
     U, S, V = svd(K, full=true)
     U ./= U[:,1]
-    Y = U[:,2:(d+1)]
+    Y = U[:,2:(maxoutdim+1)]
 
-    return DiffMap{T}(t, ɛ, K, transpose(Y))
+    return DiffMap{T}(t, convert(T, ɛ), K, transpose(Y))
 end
+
+transform(R::DiffMap) = R.proj

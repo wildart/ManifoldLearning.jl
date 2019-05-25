@@ -4,7 +4,7 @@
 # M. Belkin, P. Niyogi, Neural Computation, June 2003; 15 (6):1373-1396
 
 #### LEM type
-struct LEM{T <: AbstractFloat} <: SpectralResult
+struct LEM{T <: Real} <: AbstractDimensionalityReduction
     k::Int
     λ::AbstractVector{T}
     t::T
@@ -16,51 +16,31 @@ struct LEM{T <: AbstractFloat} <: SpectralResult
 end
 
 ## properties
-outdim(M::LEM) = size(M.proj, 1)
-projection(M::LEM) = M.proj
+outdim(R::LEM) = size(R.proj, 1)
+eigvals(R::LEM) = R.λ
+neighbors(R::LEM) = R.k
+vertices(R::LEM) = R.component
 
-eigvals(M::LEM) = M.λ
-neighbors(M::LEM) = M.k
-ccomponent(M::LEM) = M.component
-
-## show & dump
-function show(io::IO, M::LEM)
-    print(io, "Laplacian Eigenmaps(outdim = $(outdim(M)), neighbors = $(neighbors(M)), t = $(M.t))")
-end
-
-function dump(io::IO, M::LEM)
-    show(io, M)
-    println(io, "eigenvalues: ")
-    Base.showarray(io, transpose(eigvals(M)), header=false, repr=false)
-    println(io)
-    println(io, "projection:")
-    Base.showarray(io, projection(M), header=false, repr=false)
-end
+## show
+summary(io::IO, R::LEM) = print(io, "Laplacian Eigenmaps(outdim = $(outdim(R)), neighbors = $(neighbors(R)), t = $(R.t))")
 
 ## interface functions
-function transform(::Type{LEM}, X::DenseMatrix{T}; d::Int=2, k::Int=12, t::T=1.0) where T<:AbstractFloat
-    n = size(X, 2)
-
+function fit(::Type{LEM}, X::AbstractMatrix{T}; maxoutdim::Int=2, k::Int=12, t::Real=1.0) where {T<:Real}
     # Construct NN graph
     D, E = find_nn(X, k)
+    G, C = largest_component(SimpleWeightedGraph(adjmat(D,E)))
 
-    W = zeros(T,n,n)
-    for i = 1 : n
-        jj = E[:, i]
-        W[i,jj] = D[:, i]
-    end
+    # Compute weights
+    W = weights(G)
     W .^= 2
     W ./= maximum(W)
 
-    # Select largest connected component
-    CC = components(E)
-    C = length(CC) == 1 ? CC[1] : CC[argmax(map(size, CC))]
-
-    # Compute weights
-    W[W .> eps(T)] = exp.(-W[W .> eps(T)] ./ t)
+    W[W .> eps(T)] = exp.(-W[W .> eps(T)] ./ convert(T,t))
     D = diagm(0 => sum(W, dims=2)[:])
     L = D - W
 
-    λ, V = decompose(L, D, d)
+    λ, V = decompose(L, D, maxoutdim)
     return LEM{T}(k, λ, t, transpose(V), C)
 end
+
+transform(R::LEM) = R.proj

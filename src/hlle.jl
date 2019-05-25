@@ -6,7 +6,7 @@
 import Combinatorics: combinations
 
 #### HLLE type
-struct HLLE{T <: AbstractFloat} <: SpectralResult
+struct HLLE{T <: Real} <: AbstractDimensionalityReduction
     k::Int
     λ::AbstractVector{T}
     proj::Projection{T}
@@ -15,60 +15,49 @@ struct HLLE{T <: AbstractFloat} <: SpectralResult
 end
 
 ## properties
-outdim(M::HLLE) = size(M.proj, 1)
-projection(M::HLLE) = M.proj
+outdim(R::HLLE) = size(R.proj, 1)
+eigvals(R::HLLE) = R.λ
+neighbors(R::HLLE) = R.k
 
-eigvals(M::HLLE) = M.λ
-neighbors(M::HLLE) = M.k
-
-## show & dump
-function show(io::IO, M::HLLE)
-    print(io, "Hessian Eigenmaps(outdim = $(outdim(M)), neighbors = $(neighbors(M)))")
-end
-
-function dump(io::IO, M::HLLE)
-    show(io, M)
-    println(io, "eigenvalues: ")
-    Base.showarray(io, transpose(M.λ), header=false, repr=false)
-    println(io)
-    println(io, "projection:")
-    Base.showarray(io, M.proj, header=false, repr=false)
-end
+## show
+summary(io::IO, R::HLLE) = print(io, "Hessian Eigenmaps(outdim = $(outdim(R)), neighbors = $(neighbors(R)))")
 
 ## interface functions
-function transform(::Type{HLLE}, X::DenseMatrix{T}; d::Int=2, k::Int=12) where T<:AbstractFloat
+function fit(::Type{HLLE}, X::AbstractMatrix{T}; maxoutdim::Int=2, k::Int=12) where {T<:Real}
     n = size(X, 2)
 
     # Identify neighbors
-    D, I = find_nn(X, k)
+    D, E = find_nn(X, k)
 
     # Obtain tangent coordinates and develop Hessian estimator
-    hs = round(Int, d*(d+1)/2)
-    W = spzeros(hs*n,n)
+    hs = (maxoutdim*(maxoutdim+1)) >> 1
+    W = spzeros(T, hs*n, n)
     for i=1:n
+        II = @view E[:,i]
         # re-center points in neighborhood
-        μ = mean(X[:,I[:,i]], dims=2)
-        N = X[:,I[:,i]] .- μ
+        μ = mean(X[:, II], dims=2)
+        N = X[:, II] .- μ
         # calculate tangent coordinates
-        #tc = svd(transpose(N)).U[:,1:d]
-        tc = svd(N).V[:,1:d]
+        tc = svd(N).V[:,1:maxoutdim]
 
         # Develop Hessian estimator
-        Yi = [ones(k) tc zeros(k,hs)]
-        for ii=1:d
-            Yi[:,d+ii+1] = tc[:,ii].^2
+        Yi = [ones(T, k) tc zeros(T, k, hs)]
+        for ii=1:maxoutdim
+            Yi[:,maxoutdim+ii+1] = tc[:,ii].^2
         end
-        yi = 2(1+d)
-        for (ii,jj) in combinations(1:d,2)
+        yi = 2*(1+maxoutdim)
+        for (ii,jj) in combinations(1:maxoutdim, 2)
             Yi[:, yi] = tc[:, ii] .* tc[:, jj]
             yi += 1
         end
         F = qr(Yi)
-        H = transpose(Matrix(F.Q)[:,d+2:end])
-        W[(i-1)*hs .+ (1:hs),I[:,i]] = H
+        H = transpose(F.Q[:,(end-(hs-1)):end])
+        W[(1:hs).+(i-1)*hs, II] = H
     end
 
     # decomposition
-    λ, V = decompose(transpose(W)*W, d)
-    return HLLE{T}(k, λ, transpose(V) .* sqrt(n))
+    λ, V = decompose(transpose(W)*W, maxoutdim)
+    return HLLE{T}(k, λ, transpose(V) .* convert(T, sqrt(n)))
 end
+
+transform(R::HLLE) = R.proj
