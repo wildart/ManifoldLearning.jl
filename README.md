@@ -55,7 +55,6 @@ Consider using a custom *k*-nearest neighbors function, e.g. from [NearestNeighb
 
 See example of custom `knn` function [here](misc/nearestneighbors.jl).
 
-
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-stable-url]: https://wildart.github.io/ManifoldLearning.jl/stable
 
