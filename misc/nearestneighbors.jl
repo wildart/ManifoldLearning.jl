@@ -1,11 +1,12 @@
-using ManifoldLearning
-using NearestNeighbors
-using FLANN
+# Additional wrappers for performant calculations of nearest neighbors 
 
+using ManifoldLearning
 import Base: show
 import StatsAPI: fit
 import ManifoldLearning: knn
 
+# Wrapper around NearestNeighbors functionality
+using NearestNeighbors
 struct KDTree <: ManifoldLearning.AbstractNearestNeighbors
     k::Integer
     fitted::NearestNeighbors.KDTree
@@ -27,6 +28,8 @@ function knn(NN::KDTree, X::AbstractVecOrMat{T}; self=false) where {T<:Real}
     return D, E
 end
 
+# Wrapper around FLANN functionality
+using FLANN
 struct FLANNTree{T <: Real} <: ManifoldLearning.AbstractNearestNeighbors
     k::Integer
     index::FLANN.FLANNIndex{T}
@@ -41,27 +44,4 @@ function knn(NN::FLANNTree, X::AbstractVecOrMat{T}; self=false) where {T<:Real}
     E, D = FLANN.knn(NN.index, X, NN.k+1)
     sqrt.(@view D[2:end, :]), @view E[2:end, :]
 end
-
-k=13
-X, L = ManifoldLearning.swiss_roll()
-
-# Use default distance matrix based method to find nearest neighbors
-M1 = fit(Isomap, X)
-Y1 = predict(M1)
-
-# Use NearestNeighbors package to find nearest neighbors
-M2 = fit(Isomap, X, knn=KDTree)
-Y2 = predict(M2)
-
-# Use FLANN package to find nearest neighbors
-M3 = fit(Isomap, X, knn=FLANNTree)
-Y3 = predict(M3)
-
-using Plots
-plot(
-    plot(X[1,:], X[2,:], X[3,:], zcolor=L, m=2, t=:scatter3d, leg=false, title="Swiss Roll"),
-    plot(Y1[1,:], Y1[2,:], c=L, m=2, t=:scatter, title="Distance Matrix"),
-    plot(Y2[1,:], Y2[2,:], c=L, m=2, t=:scatter, title="NearestNeighbors"),
-    plot(Y3[1,:], Y3[2,:], c=L, m=2, t=:scatter, title="FLANN")
-, leg=false)
 
