@@ -23,11 +23,11 @@ neighbors(R::HLLE) = R.k
 summary(io::IO, R::HLLE) = print(io, "Hessian Eigenmaps(outdim = $(outdim(R)), neighbors = $(neighbors(R)))")
 
 ## interface functions
-function fit(::Type{HLLE}, X::AbstractMatrix{T}; maxoutdim::Int=2, k::Int=12) where {T<:Real}
+function fit(::Type{HLLE}, X::AbstractMatrix{T}; maxoutdim::Int=2, k::Int=12, knn=knn) where {T<:Real}
     n = size(X, 2)
 
     # Identify neighbors
-    D, E = find_nn(X, k)
+    D, E = knn(X, k)
 
     # Obtain tangent coordinates and develop Hessian estimator
     hs = (maxoutdim*(maxoutdim+1)) >> 1

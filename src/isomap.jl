@@ -23,9 +23,10 @@ vertices(R::Isomap) = R.component
 summary(io::IO, R::Isomap) = print(io, "Isomap(outdim = $(outdim(R)), neighbors = $(neighbors(R)))")
 
 ## interface functions
-function fit(::Type{Isomap}, X::AbstractMatrix{T}; k::Int=12, maxoutdim::Int=2) where {T<:Real}
+function fit(::Type{Isomap}, X::AbstractMatrix{T};
+             k::Int=12, maxoutdim::Int=2, knn=knn) where {T<:Real}
     # Construct NN graph
-    D, E = find_nn(X, k)
+    D, E = knn(X, k)
     G, C = largest_component(SimpleWeightedGraph(adjmat(D,E)))
 
     # Compute shortest path for every point

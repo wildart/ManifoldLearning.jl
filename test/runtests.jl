@@ -12,7 +12,7 @@ Random.seed!(3483743871)
     X, L = ManifoldLearning.swiss_roll()
 
     # test NN graph
-    D, E = ManifoldLearning.find_nn(X, k)
+    D, E = ManifoldLearning.knn(X, k)
 	@test size(X,2) == size(D,2) && size(D, 1) == k
 	@test size(X,2) == size(E,2) && size(E, 1) == k
 

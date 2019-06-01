@@ -22,11 +22,11 @@ neighbors(R::LTSA) = R.k
 summary(io::IO, R::LTSA) = print(io, "LTSA(outdim = $(outdim(R)), neighbors = $(neighbors(R)))")
 
 ## interface functions
-function fit(::Type{LTSA}, X::AbstractMatrix{T}; maxoutdim::Int=2, k::Int=12) where {T<:Real}
+function fit(::Type{LTSA}, X::AbstractMatrix{T}; maxoutdim::Int=2, k::Int=12, knn=knn) where {T<:Real}
     n = size(X, 2)
 
     # Construct NN graph
-    D, E = find_nn(X, k)
+    D, E = knn(X, k)
     S = ones(k)./sqrt(k)
     B = spzeros(T, n,n)
     for i=1:n

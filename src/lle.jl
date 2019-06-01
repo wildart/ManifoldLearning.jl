@@ -22,9 +22,10 @@ summary(io::IO, R::LLE) = print(io, "LLE(outdim = $(outdim(R)), neighbors = $(ne
 
 ## interface functions
 function fit(::Type{LLE}, X::AbstractMatrix{T};
-             maxoutdim::Int=2, k::Int=12, tol::Real=1e-5) where {T<:Real}
+             maxoutdim::Int=2, k::Int=12,
+             tol::Real=1e-5, knn=knn) where {T<:Real}
     # Construct NN graph
-    D, E = find_nn(X, k)
+    D, E = knn(X, k)
     _, C = largest_component(SimpleWeightedGraph(adjmat(D,E)))
     X = X[:, C]
     n = length(C)

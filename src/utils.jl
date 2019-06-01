@@ -1,5 +1,12 @@
-"Generate k-nearest neighborhood graph edges with distances"
-function find_nn(X::AbstractMatrix{T}, k::Int=12) where T<:Real
+"""
+    knn(points::AbstractMatrix, k) -> distances, indices
+
+Performs a lookup of the `k` nearest neigbours for each point in the `points`
+dataset to the dataset itself, and returns distances to and indices of the neigbours.
+
+*Note: Inefficient implementation that uses distance matrix. Not recomended for large datasets.*
+"""
+function knn(X::AbstractMatrix{T}, k::Int=12) where T<:Real
     m, n = size(X)
     r = Array{T}(undef, (n, n))
     d = Array{T}(undef, k, n)
