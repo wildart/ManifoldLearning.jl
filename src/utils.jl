@@ -8,6 +8,8 @@ dataset to the dataset itself, and returns distances to and indices of the neigb
 """
 function knn(X::AbstractMatrix{T}, k::Int=12) where T<:Real
     m, n = size(X)
+    @assert n > k "Number of observations must be more then $(k)"
+
     r = Array{T}(undef, (n, n))
     d = Array{T}(undef, k, n)
     e = Array{Int}(undef, k, n)

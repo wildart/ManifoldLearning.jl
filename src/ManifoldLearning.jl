@@ -4,8 +4,10 @@ module ManifoldLearning
     import SparseArrays: AbstractSparseArray, SparseMatrixCSC, spzeros, spdiagm, findnz
     import Statistics: mean, std
     import StatsBase: StatsBase, fit, standardize
-    import MultivariateStats: fit, outdim, projection, transform, KernelPCA, principalvars
-    import LinearAlgebra: eigvals, mul!, svd, qr, Symmetric, eigen, eigen!, diagm, tr, rmul!, I
+    import MultivariateStats: fit, outdim, projection, transform, KernelPCA,
+                              principalvars, dmat2gram, gram2dmat,
+                              transform!, pairwise
+    import LinearAlgebra: eigvals, mul!, svd, qr, Symmetric, eigen, eigen!, diagm, tr, rmul!, I, norm
     import LightGraphs: neighbors, nv, add_edge!, connected_components, vertices,
                         dijkstra_shortest_paths, induced_subgraph, weights
     import SimpleWeightedGraphs: SimpleWeightedGraph
@@ -36,6 +38,7 @@ module ManifoldLearning
     const Projection{T <: Real} = AbstractMatrix{T}
 
     include("utils.jl")
+    include("nearestneighbors.jl")
     include("isomap.jl")
     include("hlle.jl")
     include("lle.jl")
