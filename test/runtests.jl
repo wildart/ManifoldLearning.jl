@@ -32,7 +32,6 @@ Random.seed!(3483743871)
 end
 
 @testset "Manifold Learning" begin
-
     # setup parameters
     k = 12
     d = 2
