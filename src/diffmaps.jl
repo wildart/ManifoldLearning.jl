@@ -46,15 +46,15 @@ end
 Fit a isometric mapping model to `data`.
 
 # Arguments
-* `data::Matrix`: a (n_features, n_observations) matrix of observations. Each column of `data` is an observation.
-  if `isnothing(kernel)`, `data` is instead the (n_observations, n_observations) precomputed Gram matrix.
+* `data::Matrix`: a ``d \\times n``matrix of observations. Each column of `data` is
+an observation, `d` is a number of features, `n` is a number of observations.
 
 # Keyword arguments
-* `kernel::Union{Nothing, Function}=(x, y) -> exp(-sum((x .- y) .^ 2) / ɛ)`: the kernel function. 
- maps two input vectors (observations) to a scalar (a metric of their similarity).
- by default, a Gaussian kernel. if `isnothing(kernel)`, we assume `data` is instead 
- the (n_observations, n_observations) precomputed Gram matrix.
-* `ɛ::Real=1.0`: the Gaussian kernel variance (the scale parameter). ignored if custom `kernel` passed.
+* `kernel::Union{Nothing, Function}`: the kernel function.
+It maps two input vectors (observations) to a scalar (a metric of their similarity).
+by default, a Gaussian kernel. If `kernel` set to `nothing`, we assume `data` is
+instead the ``n \\times n``  precomputed Gram matrix.
+* `ɛ::Real=1.0`: the Gaussian kernel variance (the scale parameter). It's ignored if the custom `kernel` is passed.
 * `maxoutdim::Int=2`: the dimension of the reduced space.
 * `t::Int=1`: the number of transitions
 * `α::Real=0.0`: a normalization parameter
