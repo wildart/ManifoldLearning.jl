@@ -40,7 +40,7 @@ function fit(::Type{DiffMap}, X::AbstractMatrix{T}; maxoutdim::Int=2, t::Int=1, 
 
     # compute kernel matrix
     sumX = sum(Xtr.^ 2, dims=1)
-    K = exp.(( transpose(sumX) .+ sumX .- 2*transpose(Xtr) * Xtr ) ./ convert(T, ɛ))
+    K = exp.(-( transpose(sumX) .+ sumX .- 2*transpose(Xtr) * Xtr ) ./ convert(T, ɛ))
 
     p = transpose(sum(K, dims=1))
     K ./= (p * transpose(p)) .^ convert(T, t)
