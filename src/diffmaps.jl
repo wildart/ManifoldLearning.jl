@@ -35,7 +35,7 @@ end
 ## interface functions
 function fit(::Type{DiffMap}, X::AbstractMatrix{T}; maxoutdim::Int=2, t::Int=1, ɛ::Real=1.0) where {T<:Real}
     # rescale data
-    Xtr = standardize(StatsBase.UnitRangeTransform, X)
+    Xtr = standardize(StatsBase.UnitRangeTransform, X; dims=2)
     Xtr[findall(isnan, Xtr)] .= 0
 
     # compute kernel matrix
