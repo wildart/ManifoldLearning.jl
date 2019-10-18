@@ -54,7 +54,8 @@ function transform(R::Isomap, X::AbstractVecOrMat{T}) where {T<:Real}
     for i in 1:n
         G[:,i] = minimum(DD[:,E[:,i]] .+ D[:,i]', dims=2)
     end
+
     broadcast!(x->-x*x/2, G, G)
     transform!(R.model.center, G)
-    return projection(R.model)'*G
+    return projection(R.model)'*G'
 end

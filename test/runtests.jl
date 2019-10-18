@@ -67,3 +67,12 @@ end
     end
 
 end
+
+@testset "OOS" begin
+    k = 10
+    d = 2
+    X, _ = swiss_roll()
+    M = fit(Isomap, X; k=k, maxoutdim=d)
+
+    @test all(sum(abs2, transform(M) .- transform(M,X), dims=1) .< eps())
+end
