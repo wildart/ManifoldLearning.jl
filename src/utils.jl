@@ -60,7 +60,11 @@ function largest_component(G)
     return G, C
 end
 
-"Generate a swiss roll dataset"
+"""
+    swiss_roll(n::Int, noise::Float64)
+
+Generate a swiss roll dataset of `n` points with point coordinate `noise` variance.
+"""
 function swiss_roll(n::Int = 1000, noise::Float64=0.05)
     t = (3 * pi / 2) * (1 .+ 2 * rand(n, 1))
     height = 30 * rand(n, 1)
