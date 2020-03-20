@@ -3,7 +3,12 @@
 # A Global Geometric Framework for Nonlinear Dimensionality Reduction,
 # J. B. Tenenbaum, V. de Silva and J. C. Langford, Science 290 (5500): 2319-2323, 22 December 2000
 
-#### Isomap type
+"""
+
+    Isomap{NN <: AbstractNearestNeighbors} <: AbstractDimensionalityReduction
+
+The `Isomap` type represent isometric mapping model constructed with a help of the `NN` nearest neighbor algorithm.
+"""
 struct Isomap{NN <: AbstractNearestNeighbors} <: AbstractDimensionalityReduction
     nearestneighbors::NN
     model::KernelPCA
@@ -24,6 +29,25 @@ summary(io::IO, R::Isomap{T}) where T =
     print(io, "Isomap{$T}(outdim = $(outdim(R)), neighbors = $(neighbors(R)))")
 
 ## interface functions
+"""
+    fit(Isomap, data; k=12, maxoutdim=2, nntype=BruteForce)
+
+Fit a isometric mapping model to `data`.
+
+# Arguments
+* `data`: a matrix of observations. Each column of `data` is an observation.
+
+# Keyword arguments
+* `k`: a number of nearest neighbors for construction of local subspace representation
+* `maxoutdim`: a dimension of the reduced space.
+* `nntype`: an type of the nearest neighbor construction (derived from `AbstractNearestNeighbors`)
+
+# Examples
+```julia
+M = fit(Isomap, rand(3,100)) # construct Isomap model
+R = transform(M)             # perform dimensionality reduction
+```
+"""
 function fit(::Type{Isomap}, X::AbstractMatrix{T};
              k::Int=12, maxoutdim::Int=2, nntype=BruteForce) where {T<:Real}
     # Construct NN graph
