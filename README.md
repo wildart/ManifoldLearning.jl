@@ -1,6 +1,11 @@
-# ManifoldLearning [![Build Status](https://travis-ci.org/wildart/ManifoldLearning.jl.svg?branch=master)](https://travis-ci.org/wildart/ManifoldLearning.jl) [![Coverage Status](https://coveralls.io/repos/wildart/ManifoldLearning.jl/badge.png?branch=master)](https://coveralls.io/r/wildart/ManifoldLearning.jl?branch=master)
+# ManifoldLearning
 
-A Julia package for manifold learning and nonlinear dimensionality reduction.
+*A Julia package for manifold learning and nonlinear dimensionality reduction.*
+
+| **Documentation**                                                            | **Build Status**                                                  |
+|:----------------------------------------------------------------------------:|:-----------------------------------------------------------------:|
+| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url]    | [![][travis-img]][travis-url] [![][coveralls-img]][coveralls-url] |
+
 
 ## Methods
 
@@ -10,6 +15,15 @@ A Julia package for manifold learning and nonlinear dimensionality reduction.
 - Hessian Eigenmaps (HLLE)
 - Laplacian Eigenmaps (LEM)
 - Local tangent space alignment (LTSA)
+
+## Installation
+
+The package can be installed with the Julia package manager.
+From the Julia REPL, type `]` to enter the Pkg REPL mode and run:
+
+```
+pkg> add ManifoldLearning
+```
 
 ## Examples
 
@@ -41,7 +55,15 @@ Consider using a custom *k*-nearest neighbors function, e.g. from [NearestNeighb
 
 See example of custom `knn` function [here](misc/nearestneighbors.jl).
 
-## Resources
 
-- **Documentation:** <http://manifoldlearningjl.readthedocs.org/en/latest/index.html>
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-stable-url]: https://wildart.github.io/ManifoldLearning.jl/stable
 
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-dev-url]: https://wildart.github.io/ManifoldLearning.jl/dev
+
+[travis-img]: https://travis-ci.org/wildart/ManifoldLearning.jl.svg?branch=master
+[travis-url]: https://travis-ci.org/wildart/ManifoldLearning.jl
+
+[coveralls-img]: https://coveralls.io/repos/github/wildart/ManifoldLearning.jl/badge.svg?branch=master
+[coveralls-url]: https://coveralls.io/r/wildart/ManifoldLearning.jl?branch=master
