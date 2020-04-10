@@ -9,6 +9,7 @@ This package defines a [`DiffMap`](@ref) type to represent a diffusion map resul
 DiffMap
 fit(::Type{DiffMap}, X::AbstractArray{T,2}) where {T<:Real}
 transform(R::DiffMap)
+ManifoldLearning.kernel(R::DiffMap)
 ```
 
 ## References

@@ -2,7 +2,7 @@
 
 [Laplacian Eigenmaps](https://en.wikipedia.org/wiki/Nonlinear_dimensionality_reduction#Laplacian_eigenmaps) (LEM) method uses spectral techniques to perform dimensionality reduction. This technique relies on the basic assumption that the data lies in a low-dimensional manifold in a high-dimensional space. The algorithm provides a computationally efficient approach to non-linear dimensionality reduction that has locally preserving properties [^1].
 
-This package defines a [`LEM`](@ref) type to represent a Laplacian Eigenmaps results, and provides a set of methods to access its properties.
+This package defines a [`LEM`](@ref) type to represent a Laplacian eigenmaps results, and provides a set of methods to access its properties.
 
 
 ```@docs

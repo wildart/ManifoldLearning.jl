@@ -59,8 +59,6 @@ end
             if algorithm !== DiffMap
                 @test neighbors(Y) == k
                 @test length(eigvals(Y)) == d
-            end
-            if algorithm === Isomap || algorithm === LEM
                 @test length(vertices(Y)) > 1
             end
         end

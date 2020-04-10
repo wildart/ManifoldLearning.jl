@@ -96,8 +96,8 @@ end
 
 "Perform spectral decomposition for Ax=λB"
 function decompose(A::AbstractMatrix{<:Real}, B::AbstractMatrix{<:Real}, d::Int)
-    AA = isa(A, AbstractSparseArray) ? Symmetric(full(A)) : Symmetric(A)
-    BB = isa(B, AbstractSparseArray) ? Symmetric(full(B)) : Symmetric(B)
+    AA = isa(A, AbstractSparseArray) ? Symmetric(Matrix(A)) : Symmetric(A)
+    BB = isa(B, AbstractSparseArray) ? Symmetric(Matrix(B)) : Symmetric(B)
     F = eigen(AA, BB)
     idx = sortperm(F.values)[2:d+1]
     return F.values[idx], F.vectors[:,idx]

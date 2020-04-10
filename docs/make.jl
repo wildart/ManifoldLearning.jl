@@ -13,7 +13,7 @@ makedocs(
 			"Locally Linear Embedding" => "lle.md",
 		 	"Hessian Eigenmaps" => "hlle.md",
 		 	"Laplacian Eigenmaps" => "lem.md",
-		# 	"LTSA" => "ltsa.md",
+		 	"Local Tangent Space Alignment" => "ltsa.md",
 			"Diffusion maps" => "diffmap.md",
 		],
 		"Misc" => [

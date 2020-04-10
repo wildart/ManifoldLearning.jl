@@ -28,7 +28,7 @@ summary(io::IO, R::HLLE) = print(io, "Hessian Eigenmaps(outdim = $(outdim(R)), n
 
 ## interface functions
 """
-    fit(HLLE, data; k=12, maxoutdim=2, ɛ=1.0, nntype=BruteForce)
+    fit(HLLE, data; k=12, maxoutdim=2, nntype=BruteForce)
 
 Fit a Hessian eigenmaps model to `data`.
 
