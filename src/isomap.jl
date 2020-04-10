@@ -7,16 +7,14 @@
 
     Isomap{NN <: AbstractNearestNeighbors} <: AbstractDimensionalityReduction
 
-The `Isomap` type represent isometric mapping model constructed with a help of the `NN` nearest neighbor algorithm.
+The `Isomap` type represents isometric mapping model constructed with a help of the `NN` nearest neighbor algorithm.
 """
 struct Isomap{NN <: AbstractNearestNeighbors} <: AbstractDimensionalityReduction
     nearestneighbors::NN
-    model::KernelPCA
     component::AbstractVector{Int}
-
-    Isomap{NN}(nn::NN, model::KernelPCA) where NN = new(nn, model)
-    Isomap{NN}(nn::NN, model::KernelPCA, cc::AbstractVector{Int}) where NN = new(nn, model, cc)
+    model::KernelPCA
 end
+Isomap(nn::NN, model::KernelPCA) where {NN <: AbstractNearestNeighbors} = Isomap(nn, model, Int[])
 
 ## properties
 outdim(R::Isomap) = outdim(R.model)
@@ -32,7 +30,7 @@ summary(io::IO, R::Isomap{T}) where T =
 """
     fit(Isomap, data; k=12, maxoutdim=2, nntype=BruteForce)
 
-Fit a isometric mapping model to `data`.
+Fit an isometric mapping model to `data`.
 
 # Arguments
 * `data`: a matrix of observations. Each column of `data` is an observation.
@@ -65,11 +63,21 @@ function fit(::Type{Isomap}, X::AbstractMatrix{T};
 
     M = fit(KernelPCA, dmat2gram(DD), kernel=nothing, maxoutdim=maxoutdim)
 
-    return Isomap{nntype}(NN, M, C)
+    return Isomap{nntype}(NN, C, M)
 end
 
+"""
+    transform(R::Isomap)
+
+Transforms the data fitted to the Isomap model `R` into a reduced space representation.
+"""
 transform(R::Isomap) = transform(R.model)
 
+"""
+    transform(R::Isomap, X::AbstractVecOrMat)
+
+Returns a transformed out-of-sample data `X` given the Isomap model `R` into a reduced space representation.
+"""
 function transform(R::Isomap, X::AbstractVecOrMat{T}) where {T<:Real}
     n = size(X,2)
     D, E = knn(R.nearestneighbors, X, self = true)

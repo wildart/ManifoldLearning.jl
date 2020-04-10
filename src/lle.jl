@@ -3,31 +3,57 @@
 # Nonlinear dimensionality reduction by locally linear embedding,
 # Roweis, S. & Saul, L., Science 290:2323 (2000)
 
-#### LLE type
-struct LLE{T <: Real} <: AbstractDimensionalityReduction
-    k::Int
+"""
+
+    LLE{NN <: AbstractNearestNeighbors, T <: Real} <: AbstractDimensionalityReduction
+
+The `LLE` type represents locally linear embedding model with `T` type data constructed with a help of the `NN` nearest neighbor algorithm.
+"""
+struct LLE{NN <: AbstractNearestNeighbors, T <: Real} <: AbstractDimensionalityReduction
+    nearestneighbors::NN
+    component::AbstractVector{Int}
     λ::AbstractVector{T}
     proj::Projection{T}
-
-    LLE{T}(k::Int, λ::AbstractVector{T}, proj::Projection{T})  where T = new(k, λ, proj)
 end
 
 ## properties
 outdim(R::LLE) = size(R.proj, 1)
 eigvals(R::LLE) = R.λ
-neighbors(R::LLE) = R.k
+neighbors(R::LLE) = R.nearestneighbors.k
+vertices(R::LLE) = R.component
 
 ## show
 summary(io::IO, R::LLE) = print(io, "LLE(outdim = $(outdim(R)), neighbors = $(neighbors(R)))")
 
 ## interface functions
+"""
+    fit(LLE, data; k=12, maxoutdim=2, nntype=BruteForce, tol=1e-5)
+
+Fit a locally linear embedding model to `data`.
+
+# Arguments
+* `data`: a matrix of observations. Each column of `data` is an observation.
+
+# Keyword arguments
+* `k`: a number of nearest neighbors for construction of local subspace representation
+* `maxoutdim`: a dimension of the reduced space.
+* `nntype`: an type of the nearest neighbor construction (derived from `AbstractNearestNeighbors`)
+* `tol`: an algorithm regularization tolerance
+
+# Examples
+```julia
+M = fit(LLE, rand(3,100)) # construct LLE model
+R = transform(M)          # perform dimensionality reduction
+```
+"""
 function fit(::Type{LLE}, X::AbstractMatrix{T};
-             maxoutdim::Int=2, k::Int=12,
-             tol::Real=1e-5, knn=knn) where {T<:Real}
+             k::Int=12, maxoutdim::Int=2, nntype=BruteForce, tol::Real=1e-5) where {T<:Real}
     # Construct NN graph
-    D, E = knn(X, k)
+    NN = fit(nntype, X, k)
+    D, E = knn(NN, X)
     _, C = largest_component(SimpleWeightedGraph(adjmat(D,E)))
-    X = X[:, C]
+
+    X = @view X[:, C]
     n = length(C)
 
     # Correct indexes of neighbors if more then one connected component
@@ -68,7 +94,12 @@ function fit(::Type{LLE}, X::AbstractMatrix{T};
     end
 
     λ, V = decompose(M, maxoutdim)
-    return LLE{T}(k, λ, rmul!(transpose(V), sqrt(n)))
+    return LLE{nntype, T}(NN, C, λ, rmul!(transpose(V), sqrt(n)))
 end
 
+"""
+    transform(R::LLE)
+
+Transforms the data fitted to the LLE model `R` into a reduced space representation.
+"""
 transform(R::LLE) = R.proj
