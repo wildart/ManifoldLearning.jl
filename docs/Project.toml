@@ -1,0 +1,6 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+ManifoldLearning = "06eb3307-b2af-5a2a-abea-d33192699d32"
+
+[compat]
+Documenter = "~0.24"
