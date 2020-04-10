@@ -56,9 +56,9 @@ end
             @test outdim(Y) == d
             @test size(transform(Y), 2) == size(X, 2)
             @test length(split(sprint(show, Y), '\n')) > 1
+            @test length(eigvals(Y)) == d
             if algorithm !== DiffMap
                 @test neighbors(Y) == k
-                @test length(eigvals(Y)) == d
                 @test length(vertices(Y)) > 1
             end
         end

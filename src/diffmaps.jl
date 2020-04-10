@@ -11,20 +11,23 @@ The `DiffMap` type represents diffusion maps model constructed for `T` type data
 """
 struct DiffMap{T <: Real} <: AbstractDimensionalityReduction
     t::Int
-    ɛ::T
+    α::Real
+    ɛ::Real
+    λ::AbstractVector{T}
     K::AbstractMatrix{T}
     proj::Projection{T}
 end
 
 ## properties
 outdim(R::DiffMap) = size(R.proj, 1)
+eigvals(R::DiffMap) = R.λ
 
 ## custom
 """Returns the kernel matrix of the diffusion maps model `R`"""
 kernel(R::DiffMap) = R.K
 
 ## show
-summary(io::IO, R::DiffMap) = print(io, "Diffusion Maps(outdim = $(outdim(R)), t = $(R.t), ɛ = $(R.ɛ))")
+summary(io::IO, R::DiffMap) = print(io, "Diffusion Maps(outdim = $(outdim(R)), t = $(R.t), α = $(R.α), ɛ = $(R.ɛ))")
 function show(io::IO, R::DiffMap)
     summary(io, R)
     io = IOContext(io, :limit=>true)
@@ -38,7 +41,7 @@ end
 
 ## interface functions
 """
-    fit(DiffMap, data; maxoutdim=2, t=1, ɛ=1.0)
+    fit(DiffMap, data; maxoutdim=2, t=1, α=1.0, ɛ=1.0)
 
 Fit a isometric mapping model to `data`.
 
@@ -48,6 +51,7 @@ Fit a isometric mapping model to `data`.
 # Keyword arguments
 * `maxoutdim`: a dimension of the reduced space.
 * `t`: a number of transitions
+* `α`: a normalization parameter
 * `ɛ`: a Gaussian kernel variance (the scale parameter)
 
 # Examples
@@ -56,25 +60,35 @@ M = fit(DiffMap, rand(3,100)) # construct diffusion map model
 R = transform(M)              # perform dimensionality reduction
 ```
 """
-function fit(::Type{DiffMap}, X::AbstractMatrix{T}; maxoutdim::Int=2, t::Int=1, ɛ::Real=1.0) where {T<:Real}
-    # rescale data
-    Xtr = standardize(StatsBase.UnitRangeTransform, X; dims=2)
-    Xtr[findall(isnan, Xtr)] .= 0
-
+function fit(::Type{DiffMap}, X::AbstractMatrix{T}; maxoutdim::Int=2, t::Int=1, α::Real=0.0, ɛ::Real=1.0) where {T<:Real}
     # compute kernel matrix
-    sumX = sum(Xtr.^ 2, dims=1)
-    K = exp.(-( transpose(sumX) .+ sumX .- 2*transpose(Xtr) * Xtr ) ./ convert(T, ɛ))
+    sumX = sum(X.^ 2, dims=1)
+    L = exp.(-( transpose(sumX) .+ sumX .- 2*transpose(X) * X ) ./ convert(T, ɛ))
+    # L = pairwise((x,y)-> exp(-norm(x-y,2)^2/ε), Xtr)
 
-    p = transpose(sum(K, dims=1))
-    K ./= (p * transpose(p)) .^ convert(T, t)
-    p = transpose(sqrt.(sum(K, dims=1)))
-    K ./= p * transpose(p)
+    # Calculate Laplacian & normalize it
+    if α > 0
+        D = transpose(sum(L, dims=1))
+        L ./= (D * transpose(D)) .^ convert(T, α)
+    end
+    D = Diagonal(vec(sum(L, dims=1)))
+    M = inv(D)*L
 
-    U, S, V = svd(K, full=true)
-    U ./= U[:,1]
-    Y = U[:,2:(maxoutdim+1)]
+    # D = Diagonal(vec(sum(L, dims=1)))
+    # D⁻ᵅ = inv(D^α)
+    # Lᵅ = D⁻ᵅ*L*D⁻ᵅ
+    # Dᵅ = Diagonal(vec(sum(Lᵅ, dims=1)))
+    # M = inv(Dᵅ)*Lᵅ
 
-    return DiffMap{T}(t, convert(T, ɛ), K, transpose(Y))
+    # Eigendecomposition & reduction
+    F = eigen(M, permute=false, scale=false)
+    λ = real.(F.values)
+    idx = sortperm(λ, rev=true)[2:maxoutdim+1]
+    λ = λ[idx]
+    V = real.(F.vectors[:,idx])
+    Y = (λ.^t) .* V'
+
+    return DiffMap{T}(t, α, ɛ, λ, L, Y)
 end
 
 """
