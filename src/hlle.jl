@@ -42,7 +42,7 @@ Fit a Hessian eigenmaps model to `data`.
 
 # Examples
 ```julia
-M = fit(HLLE, rand(3,100)) # construct Laplacian Eigenmaps model
+M = fit(HLLE, rand(3,100)) # construct Hessian eigenmaps model
 R = transform(M)          # perform dimensionality reduction
 ```
 """

@@ -41,8 +41,8 @@ Fit a local tangent space alignment model to `data`.
 
 # Examples
 ```julia
-M = fit(LTSA, rand(3,100)) # construct Laplacian Eigenmaps model
-R = transform(M)          # perform dimensionality reduction
+M = fit(LTSA, rand(3,100)) # construct LTSA model
+R = transform(M)           # perform dimensionality reduction
 ```
 """
 function fit(::Type{LTSA}, X::AbstractMatrix{T};
@@ -69,7 +69,7 @@ function fit(::Type{LTSA}, X::AbstractMatrix{T};
 
         # Construct alignment matrix
         G = hcat(S, θ_t)
-        B[II, II] .+= diagm(0 => fill(one(T), k)) .- G*transpose(G)
+        B[II, II] .+= Diagonal(fill(one(T), k)) .- G*transpose(G)
     end
 
     # Align global coordinates

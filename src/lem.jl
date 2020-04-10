@@ -42,7 +42,7 @@ Fit a Laplacian eigenmaps model to `data`.
 
 # Examples
 ```julia
-M = fit(LEM, rand(3,100)) # construct Laplacian Eigenmaps model
+M = fit(LEM, rand(3,100)) # construct Laplacian eigenmaps model
 R = transform(M)          # perform dimensionality reduction
 ```
 """
@@ -59,7 +59,7 @@ function fit(::Type{LEM}, X::AbstractMatrix{T};
     W ./= maximum(W)
 
     W[W .> eps(T)] = exp.(-W[W .> eps(T)] ./ convert(T,ɛ))
-    D = diagm(0 => sum(W, dims=2)[:])
+    D = Diagonal(vec(sum(W, dims=2)))
     L = D - W
 
     λ, V = decompose(L, D, maxoutdim)
