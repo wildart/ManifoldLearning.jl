@@ -4,7 +4,6 @@
 # M. Belkin, P. Niyogi, Neural Computation, June 2003; 15 (6):1373-1396
 
 """
-
     LEM{NN <: AbstractNearestNeighbors, T <: Real} <: AbstractDimensionalityReduction
 
 The `LEM` type represents a Laplacian eigenmaps model constructed for `T` type data with a help of the `NN` nearest neighbor algorithm.

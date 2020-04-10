@@ -11,7 +11,7 @@ makedocs(
 		"Methods" => [
 			"Isomap" => "isomap.md",
 			"Locally Linear Embedding" => "lle.md",
-		# 	"HLLE" => "hlle.md",
+		 	"Hessian Eigenmaps" => "hlle.md",
 		 	"Laplacian Eigenmaps" => "lem.md",
 		# 	"LTSA" => "ltsa.md",
 			"Diffusion maps" => "diffmap.md",
