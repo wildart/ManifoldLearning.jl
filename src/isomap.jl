@@ -7,7 +7,7 @@
 
     Isomap{NN <: AbstractNearestNeighbors} <: AbstractDimensionalityReduction
 
-The `Isomap` type represents isometric mapping model constructed with a help of the `NN` nearest neighbor algorithm.
+The `Isomap` type represents an isometric mapping model constructed with a help of the `NN` nearest neighbor algorithm.
 """
 struct Isomap{NN <: AbstractNearestNeighbors} <: AbstractDimensionalityReduction
     nearestneighbors::NN
@@ -38,7 +38,7 @@ Fit an isometric mapping model to `data`.
 # Keyword arguments
 * `k`: a number of nearest neighbors for construction of local subspace representation
 * `maxoutdim`: a dimension of the reduced space.
-* `nntype`: an type of the nearest neighbor construction (derived from `AbstractNearestNeighbors`)
+* `nntype`: a nearest neighbor construction class (derived from `AbstractNearestNeighbors`)
 
 # Examples
 ```julia

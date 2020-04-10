@@ -12,7 +12,7 @@ makedocs(
 			"Isomap" => "isomap.md",
 			"Locally Linear Embedding" => "lle.md",
 		# 	"HLLE" => "hlle.md",
-		# 	"LEM" => "lem.md",
+		 	"Laplacian Eigenmaps" => "lem.md",
 		# 	"LTSA" => "ltsa.md",
 			"Diffusion maps" => "diffmap.md",
 		],

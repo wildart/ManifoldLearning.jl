@@ -2,7 +2,7 @@
 
 [Locally Linear Embedding](http://en.wikipedia.org/wiki/Locally_linear_embedding#Locally-linear_embedding>) (LLE) technique builds a single global coordinate system of lower dimensionality. By exploiting the local symmetries of linear reconstructions, LLE is able to learn the global structure of nonlinear manifolds [^1].
 
-This package defines a [`LLE`](@ref ManifoldLearning.LLE) type to represent a LLE results, and provides a set of methods to access its properties.
+This package defines a [`LLE`](@ref) type to represent a LLE results, and provides a set of methods to access its properties.
 
 ```@docs
 LLE

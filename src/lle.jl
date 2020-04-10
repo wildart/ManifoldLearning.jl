@@ -7,7 +7,7 @@
 
     LLE{NN <: AbstractNearestNeighbors, T <: Real} <: AbstractDimensionalityReduction
 
-The `LLE` type represents locally linear embedding model with `T` type data constructed with a help of the `NN` nearest neighbor algorithm.
+The `LLE` type represents a locally linear embedding model constructed for `T` type data constructed with a help of the `NN` nearest neighbor algorithm.
 """
 struct LLE{NN <: AbstractNearestNeighbors, T <: Real} <: AbstractDimensionalityReduction
     nearestneighbors::NN
@@ -37,7 +37,7 @@ Fit a locally linear embedding model to `data`.
 # Keyword arguments
 * `k`: a number of nearest neighbors for construction of local subspace representation
 * `maxoutdim`: a dimension of the reduced space.
-* `nntype`: an type of the nearest neighbor construction (derived from `AbstractNearestNeighbors`)
+* `nntype`: a nearest neighbor construction class (derived from `AbstractNearestNeighbors`)
 * `tol`: an algorithm regularization tolerance
 
 # Examples

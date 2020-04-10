@@ -7,7 +7,7 @@
 
     DiffMap{T <: Real} <: AbstractDimensionalityReduction
 
-The `DiffMap` type represents diffusion maps model with `T` type data.
+The `DiffMap` type represents diffusion maps model constructed for `T` type data.
 """
 struct DiffMap{T <: Real} <: AbstractDimensionalityReduction
     t::Int

@@ -2,7 +2,7 @@
 
 [Isomap](http://en.wikipedia.org/wiki/Isomap) is a method for low-dimensional embedding. *Isomap* is used for computing a quasi-isometric, low-dimensional embedding of a set of high-dimensional data points[^1].
 
-This package defines a [`Isomap`](@ref Isomap) type to represent a Isomap calculation results, and provides a set of methods to access its properties.
+This package defines a [`Isomap`](@ref) type to represent a Isomap calculation results, and provides a set of methods to access its properties.
 
 ```@docs
 Isomap
