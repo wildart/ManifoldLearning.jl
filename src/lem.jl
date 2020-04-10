@@ -59,7 +59,7 @@ function fit(::Type{LEM}, X::AbstractMatrix{T};
     W ./= maximum(W)
 
     W[W .> eps(T)] = exp.(-W[W .> eps(T)] ./ convert(T,ɛ))
-    D = Diagonal(vec(sum(W, dims=2)))
+    D = spdiagm(0=>vec(sum(W, dims=2)))
     L = D - W
 
     λ, V = decompose(L, D, maxoutdim)
