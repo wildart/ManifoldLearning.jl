@@ -1,17 +1,19 @@
-using Plots
-
-import FLANN
-function knn_flann(X::AbstractMatrix{T}, k::Int=12) where T<:Real
-    params = FLANN.FLANNParameters()
-    E, D = FLANN.knn(X, X, k+1, params)
-    sqrt.(@view D[2:end, :]), @view E[2:end, :]
-end
+using ManifoldLearning
+import StatsBase
 
 import NearestNeighbors
-function knn_nearestneighbors(X::AbstractMatrix{T}, k::Int=12) where T<:Real
-    n = size(X,2)
-    kdtree = NearestNeighbors.KDTree(X)
-    idxs, dist = NearestNeighbors.knn(kdtree, X, k+1, true)
+struct KDTree <: ManifoldLearning.AbstractNearestNeighbors
+    k::Integer
+    fitted::NearestNeighbors.KDTree
+end
+Base.show(io::IO, NN::KDTree) = print(io, "KDTree(k=$(NN.k))")
+StatsBase.fit(::Type{KDTree}, X::AbstractMatrix{T}, k::Integer) where {T<:Real} = KDTree(k, NearestNeighbors.KDTree(X))
+function ManifoldLearning.knn(NN::KDTree, X::AbstractVecOrMat{T}; self=false) where {T<:Real}
+    m, n = size(X)
+    k = NN.k
+    @assert n > k "Number of observations must be more then $(k)"
+
+    idxs, dist = NearestNeighbors.knn(NN.fitted, X, k+1, true)
     D = Array{T}(undef, k, n)
     E = Array{Int32}(undef, k, n)
     for i in eachindex(idxs)
@@ -21,25 +23,18 @@ function knn_nearestneighbors(X::AbstractMatrix{T}, k::Int=12) where T<:Real
     return D, E
 end
 
-using ManifoldLearning
-k=13
-X, L = ManifoldLearning.swiss_roll()
-
-# Use default distance matrix based method to find nearest neighbors
-M1 = fit(Isomap, X)
-Y1 = transform(M1)
-
-# Use NearestNeighbors package to find nearest neighbors
-M2 = fit(Isomap, X, knn=knn_nearestneighbors)
-Y2 = transform(M2)
-
-# Use FLANN package to find nearest neighbors
-M3 = fit(Isomap, X, knn=knn_flann)
-Y3 = transform(M3)
-
-plot(
-    plot(X[1,:], X[2,:], X[3,:], zcolor=L, m=2, t=:scatter3d, leg=false, title="Swiss Roll"),
-    plot(Y1[1,:], Y1[2,:], c=L, m=2, t=:scatter, title="Distance Matrix"),
-    plot(Y2[1,:], Y2[2,:], c=L, m=2, t=:scatter, title="NearestNeighbors"),
-    plot(Y3[1,:], Y3[2,:], c=L, m=2, t=:scatter, title="FLANN")
-, leg=false)
+import FLANN
+struct FLANNTree{T <: Real} <: ManifoldLearning.AbstractNearestNeighbors
+    k::Integer
+    index::FLANN.FLANNIndex{T}
+end
+Base.show(io::IO, NN::FLANNTree) = print(io, "FLANNTree(k=$(NN.k))")
+function StatsBase.fit(::Type{FLANNTree}, X::AbstractMatrix{T}, k::Integer) where {T<:Real}
+    params = FLANNParameters()
+    idx = FLANN.flann(X, params)
+    FLANNTree(k, idx)
+end
+function ManifoldLearning.knn(NN::FLANNTree, X::AbstractVecOrMat{T}; self=false) where {T<:Real}
+    E, D = FLANN.knn(NN.index, X, NN.k+1)
+    sqrt.(@view D[2:end, :]), @view E[2:end, :]
+end

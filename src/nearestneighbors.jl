@@ -1,5 +1,22 @@
+"""
+    AbstractNearestNeighbors
+
+Abstract type for nearest neighbor plug-in implementations.
+"""
 abstract type AbstractNearestNeighbors end
 
+"""
+    knn(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}; kwargs...) -> (D,E)
+
+Perform construction of the distance matrix `D` and neares neighbor weighted graph `E` from the `NN` object
+"""
+function knn(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}; kwargs...) where T<:Real end
+
+"""
+    BruteForce
+
+Calculate NN using pairwise distance matrix.
+"""
 struct BruteForce{T<:Real} <: AbstractNearestNeighbors
     k::Integer
     fitted::AbstractMatrix{T}
