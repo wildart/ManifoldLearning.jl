@@ -65,11 +65,13 @@ end
 
 Generate a swiss roll dataset of `n` points with point coordinate `noise` variance.
 """
-function swiss_roll(n::Int = 1000, noise::Float64=0.05)
+function swiss_roll(n::Int = 1000, noise=0.05; segments=1, hlims=(-10.0,10.0))
     t = (3 * pi / 2) * (1 .+ 2 * rand(n, 1))
-    height = 30 * rand(n, 1)
-    X = [t .* cos.(t) height t .* sin.(t)] + noise * randn(n, 3)
-    labels = vec(rem.(sum([round.(Int, t / 2) round.(Int, height / 12)], dims=2), 2))
+    height = (hlims[2]-hlims[1]) * rand(n, 1) .+ hlims[1]
+    X = [t .* cos.(t) height t .* sin.(t)]
+    X .+= noise * randn(n, 3)
+    mn,mx = extrema(t)
+    labels = round.(Int, (t.-mn)./(mx-mn).*(segments-1))
     return collect(transpose(X)), labels
 end
 
@@ -78,7 +80,7 @@ end
 
 Generate a spirals dataset of `n` points with point coordinate `noise` variance.
 """
-function spirals(n::Int = 1000, noise::Float64=0.03)
+function spirals(n::Int = 1000, noise::Float64=0.03; segments=1)
     t = collect(1:n) / n * 2π
     height = 30 * rand(n, 1)
     X = [cos.(t).*(.5cos.(6t).+1) sin.(t).*(.4cos.(6t).+1) 0.4sin.(6t)] + noise * randn(n, 3)
