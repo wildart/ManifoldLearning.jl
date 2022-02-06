@@ -61,9 +61,23 @@ end
                 @test neighbors(Y) == k
                 @test length(vertices(Y)) > 1
             end
+            
+            # test if we provide pre-computed Gram matrix
+            if algorithm == DiffMap && T == Float64
+                kernel = (x, y) -> exp(-sum((x .- y) .^ 2) / 1.0) # default kernel
+                n_obs = size(X)[2]
+                custom_K = zeros(n_obs, n_obs)
+                for i = 1:n_obs
+                    for j = i:n_obs
+                        custom_K[i, j] = kernel(X[:, i], X[:, j])
+                        custom_K[j, i] = custom_K[i, j]
+                    end
+                end
+                Y_custom_K = fit(algorithm, custom_K; kwargs..., kernel=nothing)
+                @test isapprox(Y_custom_K.proj, Y.proj)
+            end
         end
     end
-
 end
 
 @testset "OOS" begin
