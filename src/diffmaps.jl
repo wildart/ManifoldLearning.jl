@@ -50,7 +50,7 @@ Fit a isometric mapping model to `data`.
   if `isnothing(kernel)`, `data` is instead the (n_observations, n_observations) precomputed Gram matrix.
 
 # Keyword arguments
-* `kernel::Union{Nothing, Function}=(x, y) -> exp(-(x .- y) .^ 2 / ɛ)`: the kernel function. 
+* `kernel::Union{Nothing, Function}=(x, y) -> exp(-sum((x .- y) .^ 2) / ɛ)`: the kernel function. 
  maps two input vectors (observations) to a scalar (a metric of their similarity).
  by default, a Gaussian kernel. if `isnothing(kernel)`, we assume `data` is instead 
  the (n_observations, n_observations) precomputed Gram matrix.
