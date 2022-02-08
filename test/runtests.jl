@@ -74,7 +74,7 @@ end
                     end
                 end
                 Y_custom_K = fit(algorithm, custom_K; kwargs..., kernel=nothing)
-                @test isapprox(Y_custom_K.proj, Y.proj)
+                @test Y_custom_K.proj ≈ Y.proj
             end
         end
     end
