@@ -1,5 +1,6 @@
 using ManifoldLearning
 import ManifoldLearning: BruteForce, knn, swiss_roll
+import StatsBase: pairwise
 using Test
 import Random
 
@@ -39,7 +40,8 @@ end
     X, L = swiss_roll()
 
     # test algorithms
-    @testset for algorithm in [Isomap, LEM, LLE, HLLE, LTSA, DiffMap]
+    #@testset for algorithm in [Isomap, LEM, LLE, HLLE, LTSA, DiffMap]
+    @testset for algorithm in [DiffMap]
         for (k, T) in zip([5, 12], [Float32, Float64])
             # construct KW parameters
             kwargs = [:maxoutdim=>d]
@@ -63,13 +65,14 @@ end
             end
             
             # test if we provide pre-computed Gram matrix
-            if algorithm == DiffMap && T == Float64
-                kernel = (x, y) -> exp(-sum((x .- y) .^ 2) / 1.0) # default kernel
+            if algorithm == DiffMap
+                kernel = (x, y) -> exp(-sum((x .- y) .^ 2)) # default kernel
                 n_obs = size(X)[2]
-                custom_K = zeros(n_obs, n_obs)
+                #custom_K = pairwise(kernel, eachcol(X), symmetric=true)
+                custom_K = zeros(T, n_obs, n_obs)
                 for i = 1:n_obs
                     for j = i:n_obs
-                        custom_K[i, j] = kernel(X[:, i], X[:, j])
+                        custom_K[i, j] = kernel(convert(Array{T}, X[:, i]), convert(Array{T}, X[:, j]))
                         custom_K[j, i] = custom_K[i, j]
                     end
                 end
