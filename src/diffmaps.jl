@@ -86,7 +86,7 @@ function fit(::Type{DiffMap}, X::AbstractMatrix{T};
             ) where {T<:Real}
     if isa(kernel, Function)
         # compute Gram matrix
-        L = StatsBase.pairwise(kernel, eachcol(X), symmetric=true)
+        L = pairwise(kernel, eachcol(X), symmetric=true)
     else
         # X is the pre-computed Gram matrix
         L = deepcopy(X) # deep copy needed b/c of procedure for α > 0

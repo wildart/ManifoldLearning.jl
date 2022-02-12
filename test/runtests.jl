@@ -1,6 +1,5 @@
 using ManifoldLearning
 import ManifoldLearning: BruteForce, knn, swiss_roll
-import StatsBase: pairwise
 using Test
 import Random
 
@@ -68,7 +67,6 @@ end
             if algorithm == DiffMap
                 kernel = (x, y) -> exp(-sum((x .- y) .^ 2)) # default kernel
                 n_obs = size(X)[2]
-                #custom_K = pairwise(kernel, eachcol(X), symmetric=true)
                 custom_K = zeros(T, n_obs, n_obs)
                 for i = 1:n_obs
                     for j = i:n_obs
