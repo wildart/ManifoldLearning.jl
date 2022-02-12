@@ -79,7 +79,7 @@ M = fit(DiffMap, K, kernel=nothing)
 """
 function fit(::Type{DiffMap}, X::AbstractMatrix{T};
              ɛ::Real=1.0,
-             kernel::Union{Nothing, Function}=(x, y) -> exp(-sum((x .- y) .^ 2) / ɛ), 
+             kernel::Union{Nothing, Function}=(x, y) -> exp(-sum((x .- y) .^ 2) / convert(T, ɛ)), 
              maxoutdim::Int=2, 
              t::Int=1, 
              α::Real=0.0
