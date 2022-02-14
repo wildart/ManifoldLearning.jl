@@ -46,25 +46,52 @@ end
 Fit a isometric mapping model to `data`.
 
 # Arguments
-* `data`: a matrix of observations. Each column of `data` is an observation.
+* `data::Matrix`: a (n_features, n_observations) matrix of observations. Each column of `data` is an observation.
+  if `isnothing(kernel)`, `data` is instead the (n_observations, n_observations) precomputed Gram matrix.
 
 # Keyword arguments
-* `maxoutdim`: a dimension of the reduced space.
-* `t`: a number of transitions
-* `α`: a normalization parameter
-* `ɛ`: a Gaussian kernel variance (the scale parameter)
+* `kernel::Union{Nothing, Function}=(x, y) -> exp(-sum((x .- y) .^ 2) / ɛ)`: the kernel function. 
+ maps two input vectors (observations) to a scalar (a metric of their similarity).
+ by default, a Gaussian kernel. if `isnothing(kernel)`, we assume `data` is instead 
+ the (n_observations, n_observations) precomputed Gram matrix.
+* `ɛ::Real=1.0`: the Gaussian kernel variance (the scale parameter). ignored if custom `kernel` passed.
+* `maxoutdim::Int=2`: the dimension of the reduced space.
+* `t::Int=1`: the number of transitions
+* `α::Real=0.0`: a normalization parameter
 
 # Examples
 ```julia
-M = fit(DiffMap, rand(3,100)) # construct diffusion map model
-R = transform(M)              # perform dimensionality reduction
+X = rand(3, 100)     # toy data matrix, 100 observations
+
+# default kernel
+M = fit(DiffMap, X)  # construct diffusion map model
+R = transform(M)     # perform dimensionality reduction
+
+# custom kernel
+kernel = (x, y) -> x' * y # linear kernel
+M = fit(DiffMap, X, kernel=kernel)
+
+# precomputed Gram matrix
+kernel = (x, y) -> x' * y # linear kernel
+K = StatsBase.pairwise(kernel, eachcol(X), symmetric=true) # custom Gram matrix
+M = fit(DiffMap, K, kernel=nothing)
 ```
 """
-function fit(::Type{DiffMap}, X::AbstractMatrix{T}; maxoutdim::Int=2, t::Int=1, α::Real=0.0, ɛ::Real=1.0) where {T<:Real}
-    # compute kernel matrix
-    sumX = sum(X.^ 2, dims=1)
-    L = exp.(-( transpose(sumX) .+ sumX .- 2*transpose(X) * X ) ./ convert(T, ɛ))
-    # L = pairwise((x,y)-> exp(-norm(x-y,2)^2/ε), Xtr)
+function fit(::Type{DiffMap}, X::AbstractMatrix{T};
+             ɛ::Real=1.0,
+             kernel::Union{Nothing, Function}=(x, y) -> exp(-sum((x .- y) .^ 2) / convert(T, ɛ)), 
+             maxoutdim::Int=2, 
+             t::Int=1, 
+             α::Real=0.0
+            ) where {T<:Real}
+    if isa(kernel, Function)
+        # compute Gram matrix
+        L = pairwise(kernel, eachcol(X), symmetric=true)
+    else
+        # X is the pre-computed Gram matrix
+        L = deepcopy(X) # deep copy needed b/c of procedure for α > 0
+        @assert issymmetric(L)
+    end
 
     # Calculate Laplacian & normalize it
     if α > 0
@@ -72,7 +99,7 @@ function fit(::Type{DiffMap}, X::AbstractMatrix{T}; maxoutdim::Int=2, t::Int=1, 
         L ./= (D * transpose(D)) .^ convert(T, α)
     end
     D = Diagonal(vec(sum(L, dims=1)))
-    M = inv(D)*L
+    M = inv(D) * L # normalize rows to interpret as transition probabilities
 
     # D = Diagonal(vec(sum(L, dims=1)))
     # D⁻ᵅ = inv(D^α)
@@ -82,11 +109,12 @@ function fit(::Type{DiffMap}, X::AbstractMatrix{T}; maxoutdim::Int=2, t::Int=1, 
 
     # Eigendecomposition & reduction
     F = eigen(M, permute=false, scale=false)
-    λ = real.(F.values)
+    # for symmetric matrix, eigenvalues should be real but owing to numerical imprecision, could have nonzero-imaginary parts.
+    λ = real.(F.values) 
     idx = sortperm(λ, rev=true)[2:maxoutdim+1]
     λ = λ[idx]
-    V = real.(F.vectors[:,idx])
-    Y = (λ.^t) .* V'
+    V = real.(F.vectors[:, idx])
+    Y = (λ .^ t) .* V'
 
     return DiffMap{T}(t, α, ɛ, λ, L, Y)
 end

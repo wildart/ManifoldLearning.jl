@@ -29,7 +29,7 @@ function knn(NN::BruteForce{T}, X::AbstractVecOrMat{T}; self=false) where T<:Rea
     k = NN.k
     @assert n > k "Number of observations must be more then $(k)"
 
-    D = pairwise((x,y)->norm(x-y), NN.fitted, X)
+    D = pairwise((x,y)->norm(x-y), eachcol(NN.fitted), eachcol(X))
 
     d = Array{T}(undef, k, n)
     e = Array{Int}(undef, k, n)

@@ -39,7 +39,8 @@ end
     X, L = swiss_roll()
 
     # test algorithms
-    @testset for algorithm in [Isomap, LEM, LLE, HLLE, LTSA, DiffMap]
+    #@testset for algorithm in [Isomap, LEM, LLE, HLLE, LTSA, DiffMap]
+    @testset for algorithm in [DiffMap]
         for (k, T) in zip([5, 12], [Float32, Float64])
             # construct KW parameters
             kwargs = [:maxoutdim=>d]
@@ -61,9 +62,23 @@ end
                 @test neighbors(Y) == k
                 @test length(vertices(Y)) > 1
             end
+            
+            # test if we provide pre-computed Gram matrix
+            if algorithm == DiffMap
+                kernel = (x, y) -> exp(-sum((x .- y) .^ 2)) # default kernel
+                n_obs = size(X)[2]
+                custom_K = zeros(T, n_obs, n_obs)
+                for i = 1:n_obs
+                    for j = i:n_obs
+                        custom_K[i, j] = kernel(convert(Array{T}, X[:, i]), convert(Array{T}, X[:, j]))
+                        custom_K[j, i] = custom_K[i, j]
+                    end
+                end
+                Y_custom_K = fit(algorithm, custom_K; kwargs..., kernel=nothing)
+                @test Y_custom_K.proj ≈ Y.proj
+            end
         end
     end
-
 end
 
 @testset "OOS" begin
