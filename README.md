@@ -61,8 +61,8 @@ See example of custom `knn` function [here](misc/nearestneighbors.jl).
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: https://wildart.github.io/ManifoldLearning.jl/dev
 
-[CI-img]: https://github.com/wildart/Evolutionary.jl/actions/workflows/CI.yml/badge.svg
-[CI-url]: https://github.com/wildart/Evolutionary.jl/actions/workflows/CI.yml
+[CI-img]: https://github.com/wildart/ManifoldLearning.jl/actions/workflows/CI.yml/badge.svg
+[CI-url]: https://github.com/wildart/ManifoldLearning.jl/actions/workflows/CI.yml
 
 [coveralls-img]: https://coveralls.io/repos/github/wildart/ManifoldLearning.jl/badge.svg?branch=master
 [coveralls-url]: https://coveralls.io/r/wildart/ManifoldLearning.jl?branch=master
