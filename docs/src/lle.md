@@ -7,7 +7,7 @@ This package defines a [`LLE`](@ref) type to represent a LLE results, and provid
 ```@docs
 LLE
 fit(::Type{LLE}, X::AbstractArray{T,2}) where {T<:Real}
-transform(R::LLE)
+predict(R::LLE)
 ```
 
 ## References

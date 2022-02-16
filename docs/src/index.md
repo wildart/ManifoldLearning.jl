@@ -1,6 +1,8 @@
 # ManifoldLearning.jl
 
-The package __ManifoldLearning__ aims to provide a library for manifold learning and non-linear dimensionality reduction. It provides set of nonlinear dimensionality reduction methods, such as [`Isomap`](@ref), [`LLE`](@ref), [`LTSA`](@ref), and etc.
+The package __ManifoldLearning__ aims to provide a library for manifold learning
+and non-linear dimensionality reduction. It provides set of nonlinear dimensionality
+reduction methods, such as [`Isomap`](@ref), [`LLE`](@ref), [`LTSA`](@ref), and etc.
 
 ## Getting started
 
@@ -10,17 +12,28 @@ To install the package just type
 ] add ManifoldLearning
 ```
 
-A simple example of using the [`Isomap`](@ref) dimensionality reduction method on the build-in Swiss roll dataset, [`ManifoldLearning.swiss_roll`](@ref).
-
-```@repl
-using ManifoldLearning
-X, _ = ManifoldLearning.swiss_roll();
-X
-M = fit(Isomap, X)
-Y = transform(M)
+```@setup EG
+using Plots
+gr(fmt=:svg)
 ```
 
-## Methods
+The following example shows how to apply [`Isomap`](@ref) dimensionality reduction method
+to the build-in S curve dataset.
+
+```@example EG
+using ManifoldLearning
+X, L = ManifoldLearning.scurve(segments=5);
+scatter3d(X[1,:], X[2,:], X[3,:], c=L,palette=cgrad(:default),ms=2.5,leg=:none,camera=(10,10))
+```
+
+Now, we perform dimensionality reduction procedure and plot the resulting dataset:
+
+```@example EG
+Y = predict(fit(Isomap, X))
+scatter(Y[1,:], Y[2,:], c=L, palette=cgrad(:default), ms=2.5, leg=:none)
+```
+
+Following dimensionality reduction methods are implemented in this package:
 
 | Methods | Description |
 |:--------|:------------|

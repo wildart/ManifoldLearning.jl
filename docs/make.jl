@@ -7,7 +7,6 @@ makedocs(
 	sitename = "ManifoldLearning.jl",
 	pages = [
 		"Home" => "index.md",
-		"Interface" => "interface.md",
 		"Methods" => [
 			"Isomap" => "isomap.md",
 			"Locally Linear Embedding" => "lle.md",
@@ -17,6 +16,7 @@ makedocs(
 			"Diffusion maps" => "diffmap.md",
 		],
 		"Misc" => [
+			"Interface" => "interface.md",
 			# "Nearest Neighbors" => "knn.md",
 			"Datasets" => "datasets.md",
 		],

@@ -7,8 +7,8 @@ This package defines a [`Isomap`](@ref) type to represent a Isomap calculation r
 ```@docs
 Isomap
 fit(::Type{Isomap}, X::AbstractArray{T,2}) where {T<:Real}
-transform(R::Isomap)
-transform(R::Isomap, X::Union{AbstractArray{T,1}, AbstractArray{T,2}}) where T<:Real
+predict(R::Isomap)
+predict(R::Isomap, X::Union{AbstractArray{T,1}, AbstractArray{T,2}}) where T<:Real
 ```
 
 ## References

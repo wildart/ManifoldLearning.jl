@@ -7,7 +7,7 @@ This package defines a [`HLLE`](@ref) type to represent a Hessian LLE results, a
 ```@docs
 HLLE
 fit(::Type{HLLE}, X::AbstractArray{T,2}) where {T<:Real}
-transform(R::HLLE)
+predict(R::HLLE)
 ```
 
 # References

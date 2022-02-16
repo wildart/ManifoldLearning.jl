@@ -61,11 +61,11 @@ function largest_component(G)
 end
 
 """
-    swiss_roll(n::Int, noise::Float64)
+    swiss_roll(n::Int, noise::Real=0.03, segments=1)
 
-Generate a swiss roll dataset of `n` points with point coordinate `noise` variance.
+Generate a swiss roll dataset of `n` points with point coordinate `noise` variance, and partitioned on number of `segments`.
 """
-function swiss_roll(n::Int = 1000, noise=0.05; segments=1, hlims=(-10.0,10.0),
+function swiss_roll(n::Int = 1000, noise::Real=0.03; segments=1, hlims=(-10.0,10.0),
                     rng::AbstractRNG=default_rng())
     t = (3 * pi / 2) * (1 .+ 2 * rand(rng, n, 1))
     height = (hlims[2]-hlims[1]) * rand(rng, n, 1) .+ hlims[1]
@@ -77,11 +77,11 @@ function swiss_roll(n::Int = 1000, noise=0.05; segments=1, hlims=(-10.0,10.0),
 end
 
 """
-    spirals(n::Int, noise::Float64)
+    spirals(n::Int, noise::Real=0.03, segments=1)
 
 Generate a spirals dataset of `n` points with point coordinate `noise` variance.
 """
-function spirals(n::Int = 1000, noise::Float64=0.03; segments=1,
+function spirals(n::Int = 1000, noise::Real=0.03; segments=1,
                  rng::AbstractRNG=default_rng())
     t = collect(1:n) / n * 2π
     height = 30 * rand(rng, n, 1)
@@ -89,6 +89,25 @@ function spirals(n::Int = 1000, noise::Float64=0.03; segments=1,
     labels = vec(rem.(sum([round.(Int, t / 2) round.(Int, height / 12)], dims=2), 2))
     return collect(transpose(X)), labels
 end
+
+"""
+    scurve(n::Int, noise::Real=0.03, segments=1)
+
+Generate an S curve dataset of `n` points with point coordinate `noise` variance.
+"""
+function scurve(n::Int = 1000, noise::Real=0.03; segments=1,
+                 rng::AbstractRNG=default_rng())
+    t = 3π*(rand(rng, n) .- 0.5)
+    x = sin.(t)
+    y = 2rand(rng, n)
+    z = sign.(t) .* (cos.(t) .- 1)
+    height = 30 * rand(rng, n, 1)
+    X = [x y z] + noise * randn(n, 3)
+    mn,mx = extrema(t)
+    labels = round.(Int, (t.-mn)./(mx-mn).*(segments-1))
+    return collect(transpose(X)), labels
+end
+
 
 "Perform spectral decomposition for Ax=λI"
 function decompose(M::AbstractMatrix{<:Real}, d::Int)

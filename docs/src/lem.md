@@ -8,7 +8,7 @@ This package defines a [`LEM`](@ref) type to represent a Laplacian eigenmaps res
 ```@docs
 LEM
 fit(::Type{LEM}, X::AbstractArray{T,2}) where {T<:Real}
-transform(R::LEM)
+predict(R::LEM)
 ```
 
 ## References

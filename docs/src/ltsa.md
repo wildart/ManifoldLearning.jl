@@ -7,7 +7,7 @@ This package defines a [`LTSA`](@ref) type to represent a local tangent space al
 ```@docs
 LTSA
 fit(::Type{LTSA}, X::AbstractArray{T,2}) where {T<:Real}
-transform(R::LTSA)
+predict(R::LTSA)
 ```
 
 ## References
