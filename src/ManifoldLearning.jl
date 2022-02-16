@@ -6,7 +6,7 @@ module ManifoldLearning
     using StatsAPI: pairwise
     using Statistics: mean
     using MultivariateStats: NonlinearDimensionalityReduction, KernelPCA,
-                             dmat2gram, gram2dmat, transform!, projection, components
+                             dmat2gram, gram2dmat, transform!, projection
     using Graphs: nv, add_edge!, connected_components, dijkstra_shortest_paths,
                   induced_subgraph, weights, SimpleGraph
     using Random: AbstractRNG, default_rng
