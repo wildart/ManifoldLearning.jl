@@ -1,0 +1,6 @@
+[deps]
+FLANN = "4ef67f76-e0de-5105-ac01-03b6482fb4f8"
+ManifoldLearning = "06eb3307-b2af-5a2a-abea-d33192699d32"
+NearestNeighbors = "b8a86587-4115-5ab1-83bc-aa920d37bbce"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+StatsAPI = "82ae8749-77ed-4fe6-ae5f-f523153014b0"

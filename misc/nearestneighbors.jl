@@ -6,7 +6,7 @@ import StatsAPI: fit
 import ManifoldLearning: knn
 
 # Wrapper around NearestNeighbors functionality
-using NearestNeighbors
+using NearestNeighbors: NearestNeighbors
 struct KDTree <: ManifoldLearning.AbstractNearestNeighbors
     k::Integer
     fitted::NearestNeighbors.KDTree
@@ -29,14 +29,14 @@ function knn(NN::KDTree, X::AbstractVecOrMat{T}; self=false) where {T<:Real}
 end
 
 # Wrapper around FLANN functionality
-using FLANN
+using FLANN: FLANN
 struct FLANNTree{T <: Real} <: ManifoldLearning.AbstractNearestNeighbors
     k::Integer
     index::FLANN.FLANNIndex{T}
 end
 show(io::IO, NN::FLANNTree) = print(io, "FLANNTree(k=$(NN.k))")
 function fit(::Type{FLANNTree}, X::AbstractMatrix{T}, k::Integer) where {T<:Real}
-    params = FLANNParameters()
+    params = FLANN.FLANNParameters()
     idx = FLANN.flann(X, params)
     FLANNTree(k, idx)
 end
