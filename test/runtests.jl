@@ -1,17 +1,18 @@
 using ManifoldLearning
-import ManifoldLearning: BruteForce, knn, swiss_roll
+using ManifoldLearning: BruteForce, knn, swiss_roll
 using Test
-import Random
+using Statistics
+using StableRNGs
 
-Random.seed!(3483743871)
+rng = StableRNG(83743871)
 
 @testset "Nearest Neighbors" begin
 
     # setup parameters
     k = 12
-    X, L = swiss_roll(100)
+    X, L = swiss_roll(100, rng=rng)
     DD, EE = knn(X,k)
-    @test_throws AssertionError knn(rand(3,10), k)
+    @test_throws AssertionError knn(zeros(3,10), k)
 
     NN = fit(BruteForce, X, k)
     D, E = knn(NN, X)
@@ -28,18 +29,17 @@ Random.seed!(3483743871)
     @test D[1,:] == zeros(k+1)
     @test E[1,:] == collect(1:k+1)
 
-    @test_throws AssertionError knn(NN, X[:,1:k])
+    @test_throws AssertionError fit(BruteForce, X, 101)
 end
 
 @testset "Manifold Learning" begin
     # setup parameters
     k = 12
     d = 2
-    X, L = swiss_roll()
+    X, L = swiss_roll(;rng=rng)
 
     # test algorithms
-    #@testset for algorithm in [Isomap, LEM, LLE, HLLE, LTSA, DiffMap]
-    @testset for algorithm in [DiffMap]
+    @testset for algorithm in [Isomap, LEM, LLE, HLLE, LTSA, DiffMap]
         for (k, T) in zip([5, 12], [Float32, Float64])
             # construct KW parameters
             kwargs = [:maxoutdim=>d]
@@ -50,11 +50,11 @@ end
             end
 
             # call transformation
-            Y = fit(algorithm, convert(Array{T}, X); kwargs...)
+            Y = fit(algorithm, X; kwargs...)
 
             # test results
-            @test outdim(Y) == d
-            @test size(transform(Y), 2) == size(X, 2)
+            @test size(Y) == (3, d)
+            @test size(predict(Y), 2) == size(X, 2)
             @test length(split(sprint(show, Y), '\n')) > 1
             @test length(eigvals(Y)) == d
             if algorithm !== DiffMap
@@ -65,27 +65,26 @@ end
             # test if we provide pre-computed Gram matrix
             if algorithm == DiffMap
                 kernel = (x, y) -> exp(-sum((x .- y) .^ 2)) # default kernel
-                n_obs = size(X)[2]
-                custom_K = zeros(T, n_obs, n_obs)
-                for i = 1:n_obs
-                    for j = i:n_obs
-                        custom_K[i, j] = kernel(convert(Array{T}, X[:, i]), convert(Array{T}, X[:, j]))
-                        custom_K[j, i] = custom_K[i, j]
-                    end
-                end
-                Y_custom_K = fit(algorithm, custom_K; kwargs..., kernel=nothing)
-                @test Y_custom_K.proj ≈ Y.proj
+                custom_K = ManifoldLearning.pairwise(kernel, eachcol(X), symmetric=true)
+                Y_custom_K = fit(algorithm, custom_K; kernel=nothing, kwargs...)
+                @test isnan(size(Y_custom_K)[1])
+                @test predict(Y_custom_K) ≈ predict(Y)
             end
         end
     end
 end
 
 @testset "OOS" begin
-    k = 10
-    d = 2
-    X, _ = swiss_roll()
-    M = fit(Isomap, X; k=k, maxoutdim=d)
+    n = 200
+    k = 5
+    d = 10
+    ϵ = 0.01
 
-    @test all(sum(abs2, transform(M) .- transform(M,X), dims=1) .< eps())
+    X, _ = ManifoldLearning.swiss_roll(n ;rng=rng)
+    M = fit(Isomap, X; k=k, maxoutdim=d)
+    @test all(sum(abs2, predict(M) .- predict(M,X), dims=1) .< eps())
+
+    XX = X + ϵ*randn(rng, size(X))
+    @test sqrt(mean((predict(M) - predict(M,XX)).^2)) < 2ϵ
 end
 

@@ -21,13 +21,17 @@ struct BruteForce{T<:Real} <: AbstractNearestNeighbors
     k::Integer
     fitted::AbstractMatrix{T}
 end
-fit(::Type{BruteForce}, X::AbstractMatrix{T}, k::Integer) where {T<:Real} = BruteForce(k, X)
 show(io::IO, NN::BruteForce) = print(io, "BruteForce(k=$(NN.k))")
+function fit(::Type{BruteForce}, X::AbstractMatrix{T}, k::Integer) where {T<:Real}
+    n = size(X,2)
+    @assert n > k "Number of observations must be more then $(k)"
+    BruteForce(k, X)
+end
 
 function knn(NN::BruteForce{T}, X::AbstractVecOrMat{T}; self=false) where T<:Real
-    m, n = size(X)
+    m = size(X,1)
+    n = size(X,2)
     k = NN.k
-    @assert n > k "Number of observations must be more then $(k)"
 
     D = pairwise((x,y)->norm(x-y), eachcol(NN.fitted), eachcol(X))
 

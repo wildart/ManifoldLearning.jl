@@ -9,7 +9,8 @@
 
 The `DiffMap` type represents diffusion maps model constructed for `T` type data.
 """
-struct DiffMap{T <: Real} <: AbstractDimensionalityReduction
+struct DiffMap{T <: Real} <: NonlinearDimensionalityReduction
+    d::Number
     t::Int
     α::Real
     ɛ::Real
@@ -19,7 +20,7 @@ struct DiffMap{T <: Real} <: AbstractDimensionalityReduction
 end
 
 ## properties
-outdim(R::DiffMap) = size(R.proj, 1)
+size(R::DiffMap) = (R.d, size(R.proj, 1))
 eigvals(R::DiffMap) = R.λ
 
 ## custom
@@ -27,7 +28,10 @@ eigvals(R::DiffMap) = R.λ
 kernel(R::DiffMap) = R.K
 
 ## show
-summary(io::IO, R::DiffMap) = print(io, "Diffusion Maps(outdim = $(outdim(R)), t = $(R.t), α = $(R.α), ɛ = $(R.ɛ))")
+function summary(io::IO, R::DiffMap)
+    id, od = size(R)
+    print(io, "Diffusion Maps(indim = $id, outdim = $od, t = $(R.t), α = $(R.α), ɛ = $(R.ɛ))")
+end
 function show(io::IO, R::DiffMap)
     summary(io, R)
     io = IOContext(io, :limit=>true)
@@ -41,7 +45,7 @@ end
 
 ## interface functions
 """
-    fit(DiffMap, data; maxoutdim=2, t=1, α=1.0, ɛ=1.0)
+    fit(DiffMap, data; maxoutdim=2, t=1, α=0.0, ɛ=1.0)
 
 Fit a isometric mapping model to `data`.
 
@@ -73,7 +77,7 @@ M = fit(DiffMap, X, kernel=kernel)
 
 # precomputed Gram matrix
 kernel = (x, y) -> x' * y # linear kernel
-K = StatsBase.pairwise(kernel, eachcol(X), symmetric=true) # custom Gram matrix
+K = ManifoldLearning.pairwise(kernel, eachcol(X), symmetric=true)
 M = fit(DiffMap, K, kernel=nothing)
 ```
 """
@@ -82,14 +86,15 @@ function fit(::Type{DiffMap}, X::AbstractMatrix{T};
              kernel::Union{Nothing, Function}=(x, y) -> exp(-sum((x .- y) .^ 2) / convert(T, ɛ)), 
              maxoutdim::Int=2, 
              t::Int=1, 
-             α::Real=0.0
-            ) where {T<:Real}
+             α::Real=0.0) where {T<:Real}
     if isa(kernel, Function)
         # compute Gram matrix
         L = pairwise(kernel, eachcol(X), symmetric=true)
+        d = size(X,1)
     else
         # X is the pre-computed Gram matrix
         L = deepcopy(X) # deep copy needed b/c of procedure for α > 0
+        d = NaN
         @assert issymmetric(L)
     end
 
@@ -116,12 +121,12 @@ function fit(::Type{DiffMap}, X::AbstractMatrix{T};
     V = real.(F.vectors[:, idx])
     Y = (λ .^ t) .* V'
 
-    return DiffMap{T}(t, α, ɛ, λ, L, Y)
+    return DiffMap{T}(d, t, α, ɛ, λ, L, Y)
 end
 
 """
-    transform(R::DiffMap)
+    predict(R::DiffMap)
 
 Transforms the data fitted to the diffusion map model `R` into a reduced space representation.
 """
-transform(R::DiffMap) = R.proj
+predict(R::DiffMap) = R.proj

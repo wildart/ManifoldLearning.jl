@@ -6,11 +6,12 @@
 import Combinatorics: combinations
 
 """
-    HLLE{NN <: AbstractNearestNeighbors, T <: Real} <: AbstractDimensionalityReduction
+    HLLE{NN <: AbstractNearestNeighbors, T <: Real} <: NonlinearDimensionalityReduction
 
 The `HLLE` type represents a Hessian eigenmaps model constructed for `T` type data with a help of the `NN` nearest neighbor algorithm.
 """
-struct HLLE{NN <: AbstractNearestNeighbors, T <: Real} <: AbstractDimensionalityReduction
+struct HLLE{NN <: AbstractNearestNeighbors, T <: Real} <: NonlinearDimensionalityReduction
+    d::Int
     λ::AbstractVector{T}
     proj::Projection{T}
     nearestneighbors::NN
@@ -18,13 +19,16 @@ struct HLLE{NN <: AbstractNearestNeighbors, T <: Real} <: AbstractDimensionality
 end
 
 ## properties
-outdim(R::HLLE) = size(R.proj, 1)
+size(R::HLLE) = (R.d, size(R.proj, 1))
 eigvals(R::HLLE) = R.λ
 neighbors(R::HLLE) = R.nearestneighbors.k
 vertices(R::HLLE) = R.component
 
 ## show
-summary(io::IO, R::HLLE) = print(io, "Hessian Eigenmaps(outdim = $(outdim(R)), neighbors = $(neighbors(R)))")
+function summary(io::IO, R::HLLE)
+    id, od = size(R)
+    print(io, "HLLE(indim = $id, outdim = $od, neighbors = $(neighbors(R)))")
+end
 
 ## interface functions
 """
@@ -43,17 +47,18 @@ Fit a Hessian eigenmaps model to `data`.
 # Examples
 ```julia
 M = fit(HLLE, rand(3,100)) # construct Hessian eigenmaps model
-R = transform(M)          # perform dimensionality reduction
+R = predict(M)             # perform dimensionality reduction
 ```
 """
 function fit(::Type{HLLE}, X::AbstractMatrix{T};
              k::Int=12, maxoutdim::Int=2, nntype=BruteForce) where {T<:Real}
     # Construct NN graph
+    d, n = size(X)
     NN = fit(nntype, X, k)
     D, E = knn(NN, X)
-    G, C = largest_component(SimpleWeightedGraph(adjmat(D,E)))
+    A = adjmat(D,E)
+    G, C = largest_component(SimpleGraph(A))
     XX = @view X[:, C]
-    n = length(C)
 
     # Obtain tangent coordinates and develop Hessian estimator
     hs = (maxoutdim*(maxoutdim+1)) >> 1
@@ -84,12 +89,13 @@ function fit(::Type{HLLE}, X::AbstractMatrix{T};
 
     # decomposition
     λ, V = decompose(transpose(W)*W, maxoutdim)
-    return HLLE{nntype, T}(λ, transpose(V) .* convert(T, sqrt(n)), NN, C)
+    return HLLE{nntype, T}(d, λ, transpose(V) .* convert(T, sqrt(n)), NN, C)
 end
 
 """
-    transform(R::LLE)
+    predict(R::HLLE)
 
 Transforms the data fitted to the Hessian eigenmaps model `R` into a reduced space representation.
 """
-transform(R::HLLE) = R.proj
+predict(R::HLLE) = R.proj
+

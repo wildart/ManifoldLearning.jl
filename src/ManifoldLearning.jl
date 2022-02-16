@@ -1,20 +1,24 @@
 module ManifoldLearning
 
-    import Base: show, summary
-    import SparseArrays: AbstractSparseArray, SparseMatrixCSC, spzeros, spdiagm, findnz
-    import Statistics: mean, std
-    import StatsBase: StatsBase, fit, standardize, pairwise
-    import MultivariateStats: outdim, projection,  KernelPCA, transform, transform!,
-                              principalvars, dmat2gram, gram2dmat
-    import LinearAlgebra: eigvals, mul!, svd, qr, Symmetric, eigen, eigen!, tr, rmul!, I, norm, Diagonal, issymmetric
-    import LightGraphs: neighbors, nv, add_edge!, connected_components, vertices,
-                        dijkstra_shortest_paths, induced_subgraph, weights
-    import SimpleWeightedGraphs: SimpleWeightedGraph
+    using LinearAlgebra
+    using SparseArrays: AbstractSparseArray, SparseMatrixCSC, spzeros, spdiagm,
+                        findnz, dropzeros!
+    using StatsAPI: pairwise
+    using Statistics: mean
+    using MultivariateStats: NonlinearDimensionalityReduction, KernelPCA,
+                             dmat2gram, gram2dmat, transform!, projection, components
+    using Graphs: nv, add_edge!, connected_components, dijkstra_shortest_paths,
+                  induced_subgraph, weights, SimpleGraph
+    using Random: AbstractRNG, default_rng
+
+    import StatsAPI: fit, predict
+    import Base: show, summary, size
+    import LinearAlgebra: eigvals
+    import Graphs: vertices, neighbors
 
     export
 
     # Transformation types
-    AbstractDimensionalityReduction,
     Isomap,             # Type: Isomap model
     HLLE,               # Type: Hessian Eigenmaps model
     LLE,                # Type: Locally Linear Embedding model
@@ -25,11 +29,10 @@ module ManifoldLearning
     ## common interface
     outdim,             # the output dimension of the transformation
     fit,                # perform the manifold learning
-    transform,          # the projection matrix
+    predict,            # transform the data using a given model
     eigvals,            # eigenvalues from the spectral analysis
     neighbors,          # the number of nearest neighbors used for aproximate local subspace
-    vertices,           # vertices of largest connected component
-    projection          # the projection matrix (deprecated)
+    vertices           # vertices of largest connected component
 
     include("interface.jl")
     include("utils.jl")
@@ -42,6 +45,8 @@ module ManifoldLearning
     include("diffmaps.jl")
 
     # deprecated functions
-    @deprecate transform(DimensionalityReduction, X; k=k, d=d) fit(DimensionalityReduction, X; k=k, maxoutdim=d)
-    @deprecate projection(DimensionalityReductionModel) transform(DimensionalityReductionModel)
+    @deprecate transform(m) predict(m)
+    @deprecate transform(m, x) predict(m, x)
+    @deprecate outdim(m) size(m)[2]
+
 end

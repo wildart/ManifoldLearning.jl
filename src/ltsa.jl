@@ -5,11 +5,12 @@
 # doi:10.1137/s1064827502419154.
 
 """
-    LTSA{NN <: AbstractNearestNeighbors, T <: Real} <: AbstractDimensionalityReduction
+    LTSA{NN <: AbstractNearestNeighbors, T <: Real} <: NonlinearDimensionalityReduction
 
 The `LTSA` type represents a local tangent space alignment model constructed for `T` type data with a help of the `NN` nearest neighbor algorithm.
 """
-struct LTSA{NN <: AbstractNearestNeighbors, T <: Real} <: AbstractDimensionalityReduction
+struct LTSA{NN <: AbstractNearestNeighbors, T <: Real} <: NonlinearDimensionalityReduction
+    d::Int
     λ::AbstractVector{T}
     proj::Projection{T}
     nearestneighbors::NN
@@ -17,13 +18,16 @@ struct LTSA{NN <: AbstractNearestNeighbors, T <: Real} <: AbstractDimensionality
 end
 
 ## properties
-outdim(R::LTSA) = size(R.proj, 1)
+size(R::LTSA) = (R.d, size(R.proj, 1))
 eigvals(R::LTSA) = R.λ
 neighbors(R::LTSA) = R.nearestneighbors.k
 vertices(R::LTSA) = R.component
 
 ## show
-summary(io::IO, R::LTSA) = print(io, "LTSA(outdim = $(outdim(R)), neighbors = $(neighbors(R)))")
+function summary(io::IO, R::LTSA)
+    id, od = size(R)
+    print(io, "LTSA(indim = $id, outdim = $od, neighbors = $(neighbors(R)))")
+end
 
 ## interface functions
 """
@@ -50,12 +54,13 @@ function fit(::Type{LTSA}, X::AbstractMatrix{T};
     # Construct NN graph
     NN = fit(nntype, X, k)
     D, E = knn(NN, X)
-    G, C = largest_component(SimpleWeightedGraph(adjmat(D,E)))
+    A = adjmat(D,E)
+    G, C = largest_component(SimpleGraph(A))
     XX = @view X[:, C]
-    n = length(C)
+    d, n = size(X)
 
     S = ones(k)./sqrt(k)
-    B = spzeros(T, n,n)
+    B = spzeros(T,n,n)
     for i=1:n
         II = @view E[:,i]
         VX = view(XX, :, II)
@@ -74,12 +79,13 @@ function fit(::Type{LTSA}, X::AbstractMatrix{T};
 
     # Align global coordinates
     λ, V = decompose(B, maxoutdim)
-    return LTSA{nntype, T}(λ, transpose(V), NN, C)
+    return LTSA{nntype, T}(d, λ, transpose(V), NN, C)
 end
 
 """
-    transform(R::LTSA)
+    predict(R::LTSA)
 
 Transforms the data fitted to the local tangent space alignment model `R` into a reduced space representation.
 """
-transform(R::LTSA) = R.proj
+predict(R::LTSA) = R.proj
+

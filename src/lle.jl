@@ -5,11 +5,12 @@
 
 """
 
-    LLE{NN <: AbstractNearestNeighbors, T <: Real} <: AbstractDimensionalityReduction
+    LLE{NN <: AbstractNearestNeighbors, T <: Real} <: NonlinearDimensionalityReduction
 
 The `LLE` type represents a locally linear embedding model constructed for `T` type data constructed with a help of the `NN` nearest neighbor algorithm.
 """
-struct LLE{NN <: AbstractNearestNeighbors, T <: Real} <: AbstractDimensionalityReduction
+struct LLE{NN <: AbstractNearestNeighbors, T <: Real} <: NonlinearDimensionalityReduction
+    d::Int
     nearestneighbors::NN
     component::AbstractVector{Int}
     λ::AbstractVector{T}
@@ -17,13 +18,16 @@ struct LLE{NN <: AbstractNearestNeighbors, T <: Real} <: AbstractDimensionalityR
 end
 
 ## properties
-outdim(R::LLE) = size(R.proj, 1)
+size(R::LLE) = (R.d, size(R.proj, 1))
 eigvals(R::LLE) = R.λ
 neighbors(R::LLE) = R.nearestneighbors.k
 vertices(R::LLE) = R.component
 
 ## show
-summary(io::IO, R::LLE) = print(io, "LLE(outdim = $(outdim(R)), neighbors = $(neighbors(R)))")
+function summary(io::IO, R::LLE)
+    id, od = size(R)
+    print(io, "LLE(indim = $id, outdim = $od, neighbors = $(neighbors(R)))")
+end
 
 ## interface functions
 """
@@ -51,10 +55,11 @@ function fit(::Type{LLE}, X::AbstractMatrix{T};
     # Construct NN graph
     NN = fit(nntype, X, k)
     D, E = knn(NN, X)
-    _, C = largest_component(SimpleWeightedGraph(adjmat(D,E)))
+    A = adjmat(D,E)
+    _, C = largest_component(SimpleGraph(A))
 
     X = @view X[:, C]
-    n = length(C)
+    d, n = size(X)
 
     # Correct indexes of neighbors if more then one connected component
     Ec = E
@@ -94,12 +99,13 @@ function fit(::Type{LLE}, X::AbstractMatrix{T};
     end
 
     λ, V = decompose(M, maxoutdim)
-    return LLE{nntype, T}(NN, C, λ, rmul!(transpose(V), sqrt(n)))
+    return LLE{nntype, T}(d, NN, C, λ, rmul!(transpose(V), sqrt(n)))
 end
 
 """
-    transform(R::LLE)
+    predict(R::LLE)
 
 Transforms the data fitted to the LLE model `R` into a reduced space representation.
 """
-transform(R::LLE) = R.proj
+predict(R::LLE) = R.proj
+
