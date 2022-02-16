@@ -18,7 +18,7 @@ StatsAPI = "82ae8749-77ed-4fe6-ae5f-f523153014b0"
 
 [compat]
 Combinatorics = "^1"
-Graphs = "^1.6"
+Graphs = "^1.5"
 MultivariateStats = "^0.9"
 StatsAPI = "^1.2"
 julia = "1.1"
