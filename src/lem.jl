@@ -10,19 +10,18 @@ The `LEM` type represents a Laplacian eigenmaps model constructed for `T` type d
 """
 struct LEM{NN <: AbstractNearestNeighbors, T <: Real} <: NonlinearDimensionalityReduction
     d::Int
+    k::Int
     λ::AbstractVector{T}
     ɛ::T
     proj::Projection{T}
     nearestneighbors::NN
     component::AbstractVector{Int}
 end
-LEM(d::Int, k::Int, λ::AbstractVector{T}, t::T, proj::Projection{T}, cc::Vector{Int}) where {T} =
-    LEM{T}(d, k, λ, t, proj, cc)
 
 ## properties
 size(R::LEM) = (R.d, size(R.proj, 1))
 eigvals(R::LEM) = R.λ
-neighbors(R::LEM) = R.nearestneighbors.k
+neighbors(R::LEM) = R.k
 vertices(R::LEM) = R.component
 
 ## show
@@ -57,8 +56,8 @@ function fit(::Type{LEM}, X::AbstractMatrix{T};
         k::Int=12, maxoutdim::Int=2, ɛ::Real=1.0, nntype=BruteForce) where {T<:Real}
     # Construct NN graph
     d, n = size(X)
-    NN = fit(nntype, X, k)
-    D, E = knn(NN, X)
+    NN = fit(nntype, X)
+    D, E = knn(NN, X, k)
     A = adjmat(D,E) 
     G, C = largest_component(SimpleGraph(A))
 
@@ -71,7 +70,7 @@ function fit(::Type{LEM}, X::AbstractMatrix{T};
 
     L, D = laplacian(W)
     λ, V = decompose(collect(L), collect(D), maxoutdim)
-    return LEM{nntype, T}(d, λ, ɛ, transpose(V), NN, C)
+    return LEM{nntype, T}(d, k, λ, ɛ, transpose(V), NN, C)
 end
 
 """

@@ -6,11 +6,11 @@ Abstract type for nearest neighbor plug-in implementations.
 abstract type AbstractNearestNeighbors end
 
 """
-    knn(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}; kwargs...) -> (D,E)
+    knn(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}, k::Int; kwargs...) -> (D,E)
 
-Perform construction of the distance matrix `D` and neares neighbor weighted graph `E` from the `NN` object
+Perform construction of a distance matrix `D` and a weighted graph `E` of `k` nearest neighbors from the `NN` object.
 """
-function knn(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}; kwargs...) where T<:Real end
+function knn(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}, k::Int; kwargs...) where T<:Real end
 
 """
     BruteForce
@@ -18,20 +18,17 @@ function knn(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}; kwargs...) wh
 Calculate NN using pairwise distance matrix.
 """
 struct BruteForce{T<:Real} <: AbstractNearestNeighbors
-    k::Integer
     fitted::AbstractMatrix{T}
 end
-show(io::IO, NN::BruteForce) = print(io, "BruteForce(k=$(NN.k))")
-function fit(::Type{BruteForce}, X::AbstractMatrix{T}, k::Integer) where {T<:Real}
-    n = size(X,2)
-    @assert n > k "Number of observations must be more then $(k)"
-    BruteForce(k, X)
+show(io::IO, NN::BruteForce) = print(io, "BruteForce")
+function fit(::Type{BruteForce}, X::AbstractMatrix{T}) where {T<:Real}
+    BruteForce(X)
 end
 
-function knn(NN::BruteForce{T}, X::AbstractVecOrMat{T}; self=false) where T<:Real
+function knn(NN::BruteForce{T}, X::AbstractVecOrMat{T}, k::Int; self=false) where T<:Real
     m = size(X,1)
     n = size(X,2)
-    k = NN.k
+    @assert n > k "Number of observations must be more then $(k)"
 
     D = pairwise((x,y)->norm(x-y), eachcol(NN.fitted), eachcol(X))
 

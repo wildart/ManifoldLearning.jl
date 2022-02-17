@@ -11,6 +11,7 @@ The `LTSA` type represents a local tangent space alignment model constructed for
 """
 struct LTSA{NN <: AbstractNearestNeighbors, T <: Real} <: NonlinearDimensionalityReduction
     d::Int
+    k::Int
     λ::AbstractVector{T}
     proj::Projection{T}
     nearestneighbors::NN
@@ -20,13 +21,13 @@ end
 ## properties
 size(R::LTSA) = (R.d, size(R.proj, 1))
 eigvals(R::LTSA) = R.λ
-neighbors(R::LTSA) = R.nearestneighbors.k
+neighbors(R::LTSA) = R.k
 vertices(R::LTSA) = R.component
 
 ## show
 function summary(io::IO, R::LTSA)
     id, od = size(R)
-    print(io, "LTSA(indim = $id, outdim = $od, neighbors = $(neighbors(R)))")
+    print(io, "LTSA{$(R.nearestneighbors)}(indim = $id, outdim = $od, neighbors = $(neighbors(R)))")
 end
 
 ## interface functions
@@ -52,8 +53,8 @@ R = transform(M)           # perform dimensionality reduction
 function fit(::Type{LTSA}, X::AbstractMatrix{T};
         k::Int=12, maxoutdim::Int=2, ɛ::Real=1.0, nntype=BruteForce) where {T<:Real}
     # Construct NN graph
-    NN = fit(nntype, X, k)
-    D, E = knn(NN, X)
+    NN = fit(nntype, X)
+    D, E = knn(NN, X, k)
     A = adjmat(D,E)
     G, C = largest_component(SimpleGraph(A))
     XX = @view X[:, C]
@@ -79,7 +80,7 @@ function fit(::Type{LTSA}, X::AbstractMatrix{T};
 
     # Align global coordinates
     λ, V = decompose(B, maxoutdim)
-    return LTSA{nntype, T}(d, λ, transpose(V), NN, C)
+    return LTSA{nntype, T}(d, k, λ, transpose(V), NN, C)
 end
 
 """

@@ -12,6 +12,7 @@ The `HLLE` type represents a Hessian eigenmaps model constructed for `T` type da
 """
 struct HLLE{NN <: AbstractNearestNeighbors, T <: Real} <: NonlinearDimensionalityReduction
     d::Int
+    k::Int
     λ::AbstractVector{T}
     proj::Projection{T}
     nearestneighbors::NN
@@ -21,13 +22,13 @@ end
 ## properties
 size(R::HLLE) = (R.d, size(R.proj, 1))
 eigvals(R::HLLE) = R.λ
-neighbors(R::HLLE) = R.nearestneighbors.k
+neighbors(R::HLLE) = R.k
 vertices(R::HLLE) = R.component
 
 ## show
 function summary(io::IO, R::HLLE)
     id, od = size(R)
-    print(io, "HLLE(indim = $id, outdim = $od, neighbors = $(neighbors(R)))")
+    print(io, "HLLE{$(R.nearestneighbors)}(indim = $id, outdim = $od, neighbors = $(neighbors(R)))")
 end
 
 ## interface functions
@@ -54,8 +55,8 @@ function fit(::Type{HLLE}, X::AbstractMatrix{T};
              k::Int=12, maxoutdim::Int=2, nntype=BruteForce) where {T<:Real}
     # Construct NN graph
     d, n = size(X)
-    NN = fit(nntype, X, k)
-    D, E = knn(NN, X)
+    NN = fit(nntype, X)
+    D, E = knn(NN, X, k)
     A = adjmat(D,E)
     G, C = largest_component(SimpleGraph(A))
     XX = @view X[:, C]
@@ -89,7 +90,7 @@ function fit(::Type{HLLE}, X::AbstractMatrix{T};
 
     # decomposition
     λ, V = decompose(transpose(W)*W, maxoutdim)
-    return HLLE{nntype, T}(d, λ, transpose(V) .* convert(T, sqrt(n)), NN, C)
+    return HLLE{nntype, T}(d, k, λ, transpose(V) .* convert(T, sqrt(n)), NN, C)
 end
 
 """

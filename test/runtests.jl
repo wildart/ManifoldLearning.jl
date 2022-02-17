@@ -14,22 +14,22 @@ rng = StableRNG(83743871)
     DD, EE = knn(X,k)
     @test_throws AssertionError knn(zeros(3,10), k)
 
-    NN = fit(BruteForce, X, k)
-    D, E = knn(NN, X)
+    NN = fit(BruteForce, X)
+    D, E = knn(NN, X, k)
     @test size(X,2) == size(D,2) && size(D, 1) == k
     @test size(X,2) == size(E,2) && size(E, 1) == k
     @test E == EE
     @test D ≈ DD
 
-    D, E = knn(NN, X[:,1:k+1])
+    D, E = knn(NN, X[:,1:k+1], k)
     @test k+1 == size(D,2) && size(D, 1) == k
     @test k+1 == size(E,2) && size(E, 1) == k
 
-    D, E = knn(NN, X[:,1:k+1], self=true)
+    D, E = knn(NN, X[:,1:k+1], k, self=true)
     @test D[1,:] == zeros(k+1)
     @test E[1,:] == collect(1:k+1)
 
-    @test_throws AssertionError fit(BruteForce, X, 101)
+    @test_throws AssertionError knn(NN, X, 101)
 end
 
 @testset "Manifold Learning" begin

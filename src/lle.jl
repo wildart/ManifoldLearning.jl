@@ -11,22 +11,23 @@ The `LLE` type represents a locally linear embedding model constructed for `T` t
 """
 struct LLE{NN <: AbstractNearestNeighbors, T <: Real} <: NonlinearDimensionalityReduction
     d::Int
-    nearestneighbors::NN
-    component::AbstractVector{Int}
+    k::Int
     λ::AbstractVector{T}
     proj::Projection{T}
+    nearestneighbors::NN
+    component::AbstractVector{Int}
 end
 
 ## properties
 size(R::LLE) = (R.d, size(R.proj, 1))
 eigvals(R::LLE) = R.λ
-neighbors(R::LLE) = R.nearestneighbors.k
+neighbors(R::LLE) = R.k
 vertices(R::LLE) = R.component
 
 ## show
 function summary(io::IO, R::LLE)
     id, od = size(R)
-    print(io, "LLE(indim = $id, outdim = $od, neighbors = $(neighbors(R)))")
+    print(io, "LLE{$(R.nearestneighbors)}(indim = $id, outdim = $od, neighbors = $(neighbors(R)))")
 end
 
 ## interface functions
@@ -53,8 +54,8 @@ R = transform(M)          # perform dimensionality reduction
 function fit(::Type{LLE}, X::AbstractMatrix{T};
              k::Int=12, maxoutdim::Int=2, nntype=BruteForce, tol::Real=1e-5) where {T<:Real}
     # Construct NN graph
-    NN = fit(nntype, X, k)
-    D, E = knn(NN, X)
+    NN = fit(nntype, X)
+    D, E = knn(NN, X, k)
     A = adjmat(D,E)
     _, C = largest_component(SimpleGraph(A))
 
@@ -99,7 +100,7 @@ function fit(::Type{LLE}, X::AbstractMatrix{T};
     end
 
     λ, V = decompose(M, maxoutdim)
-    return LLE{nntype, T}(d, NN, C, λ, rmul!(transpose(V), sqrt(n)))
+    return LLE{nntype, T}(d, k, λ, rmul!(transpose(V), sqrt(n)), NN, C)
 end
 
 """
