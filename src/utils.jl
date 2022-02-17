@@ -47,6 +47,42 @@ function adjmat(D::AbstractMatrix{T}, E::AbstractMatrix{<:Integer}) where {T<:Re
     return W
 end
 
+"""
+    laplacian(A)
+
+Construct Laplacian matrix `L` from the adjacency matrix `A`, s.t. ``L = D - A``
+where ``D_{i,i} = \\sum_j A_{ji}``.
+"""
+function laplacian(A::AbstractMatrix)
+    D = Diagonal(vec(sum(A, dims=1)))
+    return D - A, D
+end
+
+"""
+    normalize!(L, α=1; norm=:sym)
+
+Performs in-place normalization of Laplacian `L`.
+
+The `norm` parameter specifies normalization type:
+- `:sym`: Laplacian `L` is symmetrically normalized, s.t. ``L_{sym} = D^{-\\alpha} L D^{-\\alpha}``.
+- `:rw`: Laplacian `L` is random walk normalized, s.t. ``L_{rw} = D^{-\\alpha} L``.
+
+where ``D`` is a diagonal matrix, s.t. ``D_{i,i} = \\sum_j L_{ji}``.
+"""
+function normalize!(L::AbstractMatrix, α::Real = 1; norm=:sym)
+    D = Diagonal(vec(sum(L, dims=1)))
+    didx = diagind(D)
+    D⁻¹ = 1 ./ diag(D)
+    D[didx] .= D⁻¹.^α
+    if norm == :sym
+        rmul!(lmul!(D, L),D)
+    elseif norm == :rw
+        lmul!(D, L)
+    else
+        error("Uknown normalization: $norm")
+    end
+end
+
 "Crate a graph with largest connected component of adjacency matrix `W`"
 function largest_component(G)
     CC = connected_components(G)
@@ -110,18 +146,19 @@ end
 
 
 "Perform spectral decomposition for Ax=λI"
-function decompose(M::AbstractMatrix{<:Real}, d::Int)
-    W = isa(M, AbstractSparseArray) ? Symmetric(Matrix(M)) : Symmetric(M)
+function decompose(M::AbstractMatrix{<:Real}, d::Int; rev=false, skipfirst=true)
+    W = isa(M, AbstractSparseMatrix) ? Symmetric(Matrix(M)) : Symmetric(M)
     F = eigen!(W)
-    idx = sortperm(F.values)[2:d+1]
+    rng = 1:d
+    idx = sortperm(F.values, rev=rev)[skipfirst ? rng.+1 : rng]
     return F.values[idx], F.vectors[:,idx]
 end
 
 "Perform spectral decomposition for Ax=λB"
-function decompose(A::AbstractMatrix{<:Real}, B::AbstractMatrix{<:Real}, d::Int)
-    AA = isa(A, AbstractSparseArray) ? Symmetric(Matrix(A)) : Symmetric(A)
-    BB = isa(B, AbstractSparseArray) ? Symmetric(Matrix(B)) : Symmetric(B)
+function decompose(A::AbstractMatrix{<:Real}, B::AbstractMatrix{<:Real}, d::Int; rev=false)
+    AA = isa(A, AbstractSparseMatrix) ? Symmetric(Matrix(A)) : Symmetric(A)
+    BB = isa(B, AbstractSparseMatrix) ? Symmetric(Matrix(B)) : Symmetric(B)
     F = eigen(AA, BB)
-    idx = sortperm(F.values)[2:d+1]
+    idx = sortperm(F.values, rev=rev)[2:d+1]
     return F.values[idx], F.vectors[:,idx]
 end

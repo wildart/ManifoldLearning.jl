@@ -1,7 +1,7 @@
 module ManifoldLearning
 
     using LinearAlgebra
-    using SparseArrays: AbstractSparseArray, SparseMatrixCSC, spzeros, spdiagm,
+    using SparseArrays: AbstractSparseMatrix, SparseMatrixCSC, spzeros, spdiagm,
                         findnz, dropzeros!
     using StatsAPI: pairwise
     using Statistics: mean

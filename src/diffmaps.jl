@@ -100,25 +100,11 @@ function fit(::Type{DiffMap}, X::AbstractMatrix{T};
 
     # Calculate Laplacian & normalize it
     if α > 0
-        D = transpose(sum(L, dims=1))
-        L ./= (D * transpose(D)) .^ convert(T, α)
+        normalize!(L, α; norm=:sym)     # Lᵅ = D⁻ᵅ*L*D⁻ᵅ
+        normalize!(L, α; norm=:rw)      # M = inv(Dᵅ)*Lᵅ
     end
-    D = Diagonal(vec(sum(L, dims=1)))
-    M = inv(D) * L # normalize rows to interpret as transition probabilities
-
-    # D = Diagonal(vec(sum(L, dims=1)))
-    # D⁻ᵅ = inv(D^α)
-    # Lᵅ = D⁻ᵅ*L*D⁻ᵅ
-    # Dᵅ = Diagonal(vec(sum(Lᵅ, dims=1)))
-    # M = inv(Dᵅ)*Lᵅ
-
     # Eigendecomposition & reduction
-    F = eigen(M, permute=false, scale=false)
-    # for symmetric matrix, eigenvalues should be real but owing to numerical imprecision, could have nonzero-imaginary parts.
-    λ = real.(F.values) 
-    idx = sortperm(λ, rev=true)[2:maxoutdim+1]
-    λ = λ[idx]
-    V = real.(F.vectors[:, idx])
+    λ, V = decompose(L, maxoutdim; rev=true, skipfirst=false)
     Y = (λ .^ t) .* V'
 
     return DiffMap{T}(d, t, α, ɛ, λ, L, Y)

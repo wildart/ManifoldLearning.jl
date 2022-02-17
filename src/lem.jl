@@ -28,7 +28,7 @@ vertices(R::LEM) = R.component
 ## show
 function summary(io::IO, R::LEM)
     id, od = size(R)
-    print(io, "LEM(indim = $id, outdim = $od, neighbors = $(neighbors(R)))")
+    print(io, "LEM{$(R.nearestneighbors)}(indim = $id, outdim = $od, neighbors = $(neighbors(R)))")
 end
 
 
@@ -62,16 +62,15 @@ function fit(::Type{LEM}, X::AbstractMatrix{T};
     A = adjmat(D,E) 
     G, C = largest_component(SimpleGraph(A))
 
-    # Compute weights
+    # Compute weights of heat kernel
     W = A[C,C]
     W .^= 2
-    #W ./= maximum(W)
+    #zidx = findall(W.>37) # will become 0 after exponent
+    W .= exp.(-collect(W) ./ convert(T,ɛ))
+    #W[zidx] .= 0 # remove small values
 
-    W[W .> eps(T)] = exp.(-W[W .> eps(T)] ./ convert(T,ɛ))
-    D = spdiagm(0=>vec(sum(W, dims=2)))
-    L = D - W
-
-    λ, V = decompose(L, D, maxoutdim)
+    L, D = laplacian(W)
+    λ, V = decompose(collect(L), collect(D), maxoutdim)
     return LEM{nntype, T}(d, λ, ɛ, transpose(V), NN, C)
 end
 
