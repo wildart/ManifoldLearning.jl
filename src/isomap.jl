@@ -11,7 +11,7 @@ The `Isomap` type represents an isometric mapping model constructed with a help 
 """
 struct Isomap{NN <: AbstractNearestNeighbors} <: NonlinearDimensionalityReduction
     d::Int
-    k::Int
+    k::Real
     model::KernelPCA
     nearestneighbors::NN
     component::AbstractVector{Int}
@@ -26,7 +26,8 @@ vertices(R::Isomap) = R.component
 ## show
 function summary(io::IO, R::Isomap)
     id, od = size(R)
-    print(io, "Isomap{$(R.nearestneighbors)}(indim = $id, outdim = $od, neighbors = $(neighbors(R)))")
+    msg = isinteger(R.k) ? "neighbors" : "epsilon"
+    print(io, "Isomap{$(R.nearestneighbors)}(indim = $id, outdim = $od, $msg = $(R.k)")
 end
 
 ## interface functions
@@ -50,12 +51,11 @@ R = predict(M)               # perform dimensionality reduction
 ```
 """
 function fit(::Type{Isomap}, X::AbstractMatrix{T};
-             k::Int=12, maxoutdim::Int=2, nntype=BruteForce) where {T<:Real}
+             k::Real=12, maxoutdim::Int=2, nntype=BruteForce) where {T<:Real}
     # Construct NN graph
     d, n = size(X)
     NN = fit(nntype, X)
-    D, E = knn(NN, X, k)
-    A = adjmat(D,E)
+    A = adjacency_matrix(NN, X, k)
     G, C = largest_component(SimpleGraph(A))
 
     # Compute shortest path for every point
@@ -85,15 +85,16 @@ Returns a transformed out-of-sample data `X` given the Isomap model `R` into a r
 """
 function predict(R::Isomap, X::AbstractVecOrMat{T}) where {T<:Real}
     n = size(X,2)
-    D, E = knn(R.nearestneighbors, X, R.k, self = true)
-    DD = gram2dmat(R.model.X)
+    E, W = adjacency_list(R.nearestneighbors, X, R.k, self = true)
+    D = gram2dmat(R.model.X)
 
     G = zeros(size(R.model.X,2), n)
     for i in 1:n
-        G[:,i] = minimum(DD[:,E[:,i]] .+ D[:,i]', dims=2)
+        G[:,i] = minimum(D[:,E[i]] .+ W[i]', dims=2)
     end
 
     broadcast!(x->-x*x/2, G, G)
     transform!(R.model.center, G)
     return projection(R.model)'*G'
 end
+

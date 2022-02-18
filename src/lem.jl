@@ -10,7 +10,7 @@ The `LEM` type represents a Laplacian eigenmaps model constructed for `T` type d
 """
 struct LEM{NN <: AbstractNearestNeighbors, T <: Real} <: NonlinearDimensionalityReduction
     d::Int
-    k::Int
+    k::Real
     λ::AbstractVector{T}
     ɛ::T
     proj::Projection{T}
@@ -27,7 +27,8 @@ vertices(R::LEM) = R.component
 ## show
 function summary(io::IO, R::LEM)
     id, od = size(R)
-    print(io, "LEM{$(R.nearestneighbors)}(indim = $id, outdim = $od, neighbors = $(neighbors(R)))")
+    msg = isinteger(R.k) ? "neighbors" : "epsilon"
+    print(io, "LEM{$(R.nearestneighbors)}(indim = $id, outdim = $od, $msg = $(R.k))")
 end
 
 
@@ -56,21 +57,20 @@ M = fit(LEM, rand(3,100)) # construct Laplacian eigenmaps model
 R = predict(M)          # perform dimensionality reduction
 ```
 """
-function fit(::Type{LEM}, X::AbstractMatrix{T}; k::Int=12, maxoutdim::Int=2,
+function fit(::Type{LEM}, X::AbstractMatrix{T}; k::Real=12, maxoutdim::Int=2,
              ɛ::Real=1, laplacian::Symbol=:unnorm, nntype=BruteForce) where {T<:Real}
     # Construct NN graph
     d, n = size(X)
     NN = fit(nntype, X)
-    D, E = knn(NN, X, k)
-    A = adjmat(D,E) 
+    A = adjacency_matrix(NN, X, k)
     G, C = largest_component(SimpleGraph(A))
 
     # Compute weights of heat kernel
     W = A[C,C]
-    W .^= 2
-    #zidx = findall(W.>37) # will become 0 after exponent
-    W = exp.(-collect(W) ./ convert(T,ɛ))
-    #W[zidx] .= 0 # remove small values
+    I, J, V = findnz(W)
+    @inbounds for (i,j,v) in zip(I,J,V)
+        W[i,j] = exp(-v*v/ε)
+    end
 
     L, D = Laplacian(W)
     λ, V = if laplacian == :unnorm

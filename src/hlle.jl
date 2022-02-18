@@ -12,7 +12,7 @@ The `HLLE` type represents a Hessian eigenmaps model constructed for `T` type da
 """
 struct HLLE{NN <: AbstractNearestNeighbors, T <: Real} <: NonlinearDimensionalityReduction
     d::Int
-    k::Int
+    k::Real
     λ::AbstractVector{T}
     proj::Projection{T}
     nearestneighbors::NN
@@ -28,7 +28,8 @@ vertices(R::HLLE) = R.component
 ## show
 function summary(io::IO, R::HLLE)
     id, od = size(R)
-    print(io, "HLLE{$(R.nearestneighbors)}(indim = $id, outdim = $od, neighbors = $(neighbors(R)))")
+    msg = isinteger(R.k) ? "neighbors" : "epsilon"
+    print(io, "HLLE{$(R.nearestneighbors)}(indim = $id, outdim = $od, $msg = $(R.k))")
 end
 
 ## interface functions
@@ -52,29 +53,28 @@ R = predict(M)             # perform dimensionality reduction
 ```
 """
 function fit(::Type{HLLE}, X::AbstractMatrix{T};
-             k::Int=12, maxoutdim::Int=2, nntype=BruteForce) where {T<:Real}
+             k::Real=12, maxoutdim::Int=2, nntype=BruteForce) where {T<:Real}
     # Construct NN graph
     d, n = size(X)
     NN = fit(nntype, X)
-    D, E = knn(NN, X, k)
-    A = adjmat(D,E)
+    A = adjacency_matrix(NN, X, k)
     G, C = largest_component(SimpleGraph(A))
-    XX = @view X[:, C]
 
     # Obtain tangent coordinates and develop Hessian estimator
     hs = (maxoutdim*(maxoutdim+1)) >> 1
     W = spzeros(T, hs*n, n)
     for i=1:n
-        II = @view E[:,C[i]]
+        II, _ = findnz(A[:,C[i]])
         # re-center points in neighborhood
-        VX = view(XX, :, II)
+        VX = view(X, :, II)
         μ = mean(VX, dims=2)
         N = VX .- μ
         # calculate tangent coordinates
         tc = svd(N).V[:,1:maxoutdim]
 
         # Develop Hessian estimator
-        Yi = [ones(T, k) tc zeros(T, k, hs)]
+        l = length(II)
+        Yi = [ones(T, l) tc zeros(T, l, hs)]
         for ii=1:maxoutdim
             Yi[:,maxoutdim+ii+1] = tc[:,ii].^2
         end

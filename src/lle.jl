@@ -11,7 +11,7 @@ The `LLE` type represents a locally linear embedding model constructed for `T` t
 """
 struct LLE{NN <: AbstractNearestNeighbors, T <: Real} <: NonlinearDimensionalityReduction
     d::Int
-    k::Int
+    k::Real
     λ::AbstractVector{T}
     proj::Projection{T}
     nearestneighbors::NN
@@ -27,7 +27,8 @@ vertices(R::LLE) = R.component
 ## show
 function summary(io::IO, R::LLE)
     id, od = size(R)
-    print(io, "LLE{$(R.nearestneighbors)}(indim = $id, outdim = $od, neighbors = $(neighbors(R)))")
+    msg = isinteger(R.k) ? "neighbors" : "epsilon"
+    print(io, "LLE{$(R.nearestneighbors)}(indim = $id, outdim = $od, $msg = $(R.k))")
 end
 
 ## interface functions
@@ -54,53 +55,62 @@ R = transform(M)          # perform dimensionality reduction
 function fit(::Type{LLE}, X::AbstractMatrix{T};
              k::Int=12, maxoutdim::Int=2, nntype=BruteForce, tol::Real=1e-5) where {T<:Real}
     # Construct NN graph
-    NN = fit(nntype, X)
-    D, E = knn(NN, X, k)
-    A = adjmat(D,E)
-    _, C = largest_component(SimpleGraph(A))
-
-    X = @view X[:, C]
     d, n = size(X)
+    NN = fit(nntype, X)
+    E, _ = adjacency_list(NN, X, k)
+    _, C = largest_component(SimpleGraph(n, E))
 
     # Correct indexes of neighbors if more then one connected component
-    Ec = E
-    if size(E,2) != n
+    fixindex = length(C) < n
+    if fixindex
+        n = length(C)
         R = Dict(zip(C, collect(1:n)))
-        Ec = zeros(Int,k,n)
-        for i in 1 : n
-            Ec[:,i] = map(j->get(R,j,C[i]), E[:,C[i]])
-        end
     end
 
-    if k > maxoutdim
-        @warn("k > maxoutdim: regularization will be used")
+    if k > d
+        @warn("k > $d: regularization will be used")
     else
         tol = 0
     end
 
     # Reconstruct weights and compute embedding:
-    # M = (I - w)'(I - w) = I - w'I - Iw + w'w
     M = spdiagm(0 => fill(one(T), n))
-    Ones = fill(one(T), k, 1)
-    for i in 1 : n
-        J = Ec[:,i]
-        Z = view(X, :, J) .- view(X, :, i)
-        G = transpose(Z)*Z
-        G += I * tol # regularize
-        w = vec(G \ Ones)
-        w ./= sum(w)
-        ww = w*transpose(w)
-        for (l, j) in enumerate(J)
-            M[i,j] -= w[l]
-            M[j,i] -= w[l]
-            for (m, jj) in enumerate(J)
-                M[j,jj] = ww[l,m]
-            end
+    #W = spzeros(T, n, n)
+    O = fill(one(T), k, 1)
+    for i in C
+        NI = E[i] # neighbor's indexes
+
+        # fix indexes for connected components
+        NIfix, NIcc, j = if fixindex # fix index
+            JJ = [i for i in NI if i ∈ C] # select points that are in CC
+            KK = [R[i] for i in JJ if haskey(R, i)] # convert NI to CC index
+            JJ, KK, R[i]
+        else
+            NI, NI, i
         end
+        l = length(NIfix)
+        l == 0 && continue # skip
+
+        # centering neighborhood of point xᵢ
+        zᵢ = view(X, :, NIfix) .- view(X, :, i)
+
+        # calculate weights: wᵢ = (Gᵢ + αI)⁻¹1
+        G = zᵢ'zᵢ
+        w = (G  + tol * I) \ fill(one(T), l, 1)
+        w ./= sum(w)
+
+        # M = (I - w)'(I - w) = I - w'I - Iw + w'w
+        M[NIcc,j] .-= w
+        M[j,NIcc] .-= w
+        M[NIcc,NIcc] .+= w*w'
+
+        #W[NI, i] .= w
     end
+    #@assert all(sum(W, dims=1).-1 .< tol) "Weights are not normalized"
+    #M = (I-W)*(I-W)'
 
     λ, V = decompose(M, maxoutdim)
-    return LLE{nntype, T}(d, k, λ, rmul!(transpose(V), sqrt(n)), NN, C)
+    return LLE{nntype, T}(d, k, λ, transpose(V) .* convert(T, sqrt(n)), NN, C)
 end
 
 """

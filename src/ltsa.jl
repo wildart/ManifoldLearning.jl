@@ -11,7 +11,7 @@ The `LTSA` type represents a local tangent space alignment model constructed for
 """
 struct LTSA{NN <: AbstractNearestNeighbors, T <: Real} <: NonlinearDimensionalityReduction
     d::Int
-    k::Int
+    k::Real
     λ::AbstractVector{T}
     proj::Projection{T}
     nearestneighbors::NN
@@ -27,7 +27,8 @@ vertices(R::LTSA) = R.component
 ## show
 function summary(io::IO, R::LTSA)
     id, od = size(R)
-    print(io, "LTSA{$(R.nearestneighbors)}(indim = $id, outdim = $od, neighbors = $(neighbors(R)))")
+    msg = isinteger(R.k) ? "neighbors" : "epsilon"
+    print(io, "LTSA{$(R.nearestneighbors)}(indim = $id, outdim = $od, neighbors = $(R.k))")
 end
 
 ## interface functions
@@ -51,31 +52,47 @@ R = transform(M)           # perform dimensionality reduction
 ```
 """
 function fit(::Type{LTSA}, X::AbstractMatrix{T};
-        k::Int=12, maxoutdim::Int=2, ɛ::Real=1.0, nntype=BruteForce) where {T<:Real}
+             k::Real=12, maxoutdim::Int=2, nntype=BruteForce) where {T<:Real}
     # Construct NN graph
-    NN = fit(nntype, X)
-    D, E = knn(NN, X, k)
-    A = adjmat(D,E)
-    G, C = largest_component(SimpleGraph(A))
-    XX = @view X[:, C]
     d, n = size(X)
+    NN = fit(nntype, X)
+    E, _ = adjacency_list(NN, X, k)
+    _, C = largest_component(SimpleGraph(n, E))
 
-    S = ones(k)./sqrt(k)
+    # Correct indexes of neighbors if more then one connected component
+    fixindex = length(C) < n
+    if fixindex
+        n = length(C)
+        R = Dict(zip(C, collect(1:n)))
+    end
+
     B = spzeros(T,n,n)
-    for i=1:n
-        II = @view E[:,i]
-        VX = view(XX, :, II)
+    for i in C
+        NI = E[i] # neighbor's indexes
+
+        # fix indexes for connected components
+        NIfix, NIcc = if fixindex # fix index
+            JJ = [i for i in NI if i ∈ C] # select points that are in CC
+            KK = [R[i] for i in JJ if haskey(R, i)] # convert NI to CC index
+            JJ, KK
+        else
+            NI, NI
+        end
+        l = length(NIfix)
+        l == 0 && continue # skip
 
         # re-center points in neighborhood
+        VX = view(X, :, NIfix)
         μ = mean(VX, dims=2)
         δ_x = VX .- μ
 
         # Compute orthogonal basis H of θ'
-        θ_t = svd(δ_x).V[:,1:maxoutdim]
+        θ_t = view(svd(δ_x).V, :, 1:maxoutdim)
 
         # Construct alignment matrix
+        S = ones(l)./sqrt(l)
         G = hcat(S, θ_t)
-        B[II, II] .+= Diagonal(fill(one(T), k)) .- G*transpose(G)
+        B[NIcc, NIcc] .+= Diagonal(fill(one(T), l)) .- G*transpose(G)
     end
 
     # Align global coordinates
