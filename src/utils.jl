@@ -33,18 +33,24 @@ function knn(X::AbstractMatrix{T}, k::Int=12) where T<:Real
     return (d, e)
 end
 
-function adjmat(D::AbstractMatrix{T}, E::AbstractMatrix{<:Integer}) where {T<:Real}
-    @assert size(D) == size(E) "Distance and edge matrix must be of the same size"
-    n = size(D, 2)
-    W = spzeros(T, n, n)
-    @inbounds for II in CartesianIndices(D)
-        d  = D[II]
-        ii = E[II]
-        j = II[2]
-        W[ii, j] = d
-        W[j, ii] = d
+"""
+    adjacency_matrix(A, W)
+
+Returns a weighted adjacency matrix constructed from an adjacency list `A` and
+weights `W`.
+"""
+function adjacency_matrix(A::AbstractArray{S},
+                          W::AbstractArray{Q}) where {T<:Real,
+                                                       S<:AbstractArray{<:Integer},
+                                                       Q<:AbstractArray{T}}
+    @assert length(A) == length(W) "Weights and edge matrix must be of the same size"
+    n = length(A)
+    M = spzeros(T, n, n)
+    @inbounds for (j, (ii, ws)) in enumerate(zip(A, W))
+        M[ii, j] = ws
+        M[j, ii] = ws
     end
-    return W
+    return M
 end
 
 """
@@ -107,7 +113,7 @@ function swiss_roll(n::Int = 1000, noise::Real=0.03; segments=1, hlims=(-10.0,10
     X = [t .* cos.(t) height t .* sin.(t)]
     X .+= noise * randn(rng, n, 3)
     mn,mx = extrema(t)
-    labels = round.(Int, (t.-mn)./(mx-mn).*(segments-1))
+    labels = segments == 0 ? t : round.(Int, (t.-mn)./(mx-mn).*(segments-1))
     return collect(transpose(X)), labels
 end
 
@@ -121,7 +127,7 @@ function spirals(n::Int = 1000, noise::Real=0.03; segments=1,
     t = collect(1:n) / n * 2π
     height = 30 * rand(rng, n, 1)
     X = [cos.(t).*(.5cos.(6t).+1) sin.(t).*(.4cos.(6t).+1) 0.4sin.(6t)] + noise * randn(n, 3)
-    labels = vec(rem.(sum([round.(Int, t / 2) round.(Int, height / 12)], dims=2), 2))
+    labels = segments == 0 ? t : vec(rem.(sum([round.(Int, t / 2) round.(Int, height / 12)], dims=2), 2))
     return collect(transpose(X)), labels
 end
 
@@ -139,7 +145,7 @@ function scurve(n::Int = 1000, noise::Real=0.03; segments=1,
     height = 30 * rand(rng, n, 1)
     X = [x y z] + noise * randn(n, 3)
     mn,mx = extrema(t)
-    labels = round.(Int, (t.-mn)./(mx-mn).*(segments-1))
+    labels = segments == 0 ? t : round.(Int, (t.-mn)./(mx-mn).*(segments-1))
     return collect(transpose(X)), labels
 end
 

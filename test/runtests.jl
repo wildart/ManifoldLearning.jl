@@ -7,7 +7,6 @@ using StableRNGs
 rng = StableRNG(83743871)
 
 @testset "Nearest Neighbors" begin
-
     # setup parameters
     k = 12
     X, L = swiss_roll(100, rng=rng)
@@ -15,24 +14,30 @@ rng = StableRNG(83743871)
     @test_throws AssertionError knn(zeros(3,10), k)
 
     NN = fit(BruteForce, X)
-    D, E = knn(NN, X, k)
-    @test size(X,2) == size(D,2) && size(D, 1) == k
-    @test size(X,2) == size(E,2) && size(E, 1) == k
-    @test E == EE
-    @test D ≈ DD
+    A = ManifoldLearning.adjacency_matrix(NN, X, k)
+    @test size(X,2) == size(A,2)
+    @test A ≈ ManifoldLearning.adjacency_matrix(collect(eachcol(EE)), collect(eachcol(DD)))
 
-    D, E = knn(NN, X[:,1:k+1], k)
-    @test k+1 == size(D,2) && size(D, 1) == k
-    @test k+1 == size(E,2) && size(E, 1) == k
+    E, W = ManifoldLearning.adjacency_list(NN, X, k)
+    @test size(X,2) == length(W) && length(W[1]) == k
+    @test size(X,2) == length(E) && length(E[1]) == k
+    @test hcat(E...) == EE
+    @test hcat(W...) ≈ DD
+    @test A ≈ ManifoldLearning.adjacency_matrix(E, W)
 
-    D, E = knn(NN, X[:,1:k+1], k, self=true)
-    @test D[1,:] == zeros(k+1)
-    @test E[1,:] == collect(1:k+1)
+    A = ManifoldLearning.adjacency_matrix(NN, X[:,1:k+1], k)
+    @test size(X,2) == size(A,2)
+    @test sum(A[k+2:end,k+2:end]) == 0
 
-    @test_throws AssertionError knn(NN, X, 101)
+    A = ManifoldLearning.adjacency_matrix(NN, X, k/7)
+    @test size(X,2) == size(A,2)
+    @test maximum(A) <= k/7
+
+    @test_throws AssertionError ManifoldLearning.adjacency_matrix(NN, X, 101)
+    @test_throws AssertionError ManifoldLearning.adjacency_list(NN, X, 101)
 end
 
-@testset "Laplacian"  begin
+@testset "Laplacian" begin
 
     A = [0 1 0; 1 0 1; 0 1 0.0]
     L, D = ManifoldLearning.Laplacian(A)
