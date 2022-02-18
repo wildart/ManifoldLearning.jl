@@ -48,20 +48,21 @@ function adjmat(D::AbstractMatrix{T}, E::AbstractMatrix{<:Integer}) where {T<:Re
 end
 
 """
-    laplacian(A)
+    Laplacian(A)
 
 Construct Laplacian matrix `L` from the adjacency matrix `A`, s.t. ``L = D - A``
 where ``D_{i,i} = \\sum_j A_{ji}``.
 """
-function laplacian(A::AbstractMatrix)
+function Laplacian(A::AbstractMatrix)
     D = Diagonal(vec(sum(A, dims=1)))
     return D - A, D
 end
 
 """
-    normalize!(L, α=1; norm=:sym)
+    normalize!(L, [D; α=1, norm=:sym])
 
-Performs in-place normalization of Laplacian `L`.
+Performs in-place normalization of the Laplacian `L` using the degree matrix `D`,
+if provided, raised in a power `α`.
 
 The `norm` parameter specifies normalization type:
 - `:sym`: Laplacian `L` is symmetrically normalized, s.t. ``L_{sym} = D^{-\\alpha} L D^{-\\alpha}``.
@@ -69,8 +70,8 @@ The `norm` parameter specifies normalization type:
 
 where ``D`` is a diagonal matrix, s.t. ``D_{i,i} = \\sum_j L_{ji}``.
 """
-function normalize!(L::AbstractMatrix, α::Real = 1; norm=:sym)
-    D = Diagonal(vec(sum(L, dims=1)))
+function normalize!(L::AbstractMatrix, D=Diagonal(vec(sum(L, dims=1)));
+                    α::Real=1, norm=:sym)
     didx = diagind(D)
     D⁻¹ = 1 ./ diag(D)
     D[didx] .= D⁻¹.^α

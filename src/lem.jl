@@ -45,15 +45,19 @@ Fit a Laplacian eigenmaps model to `data`.
 * `maxoutdim`: a dimension of the reduced space.
 * `nntype`: a nearest neighbor construction class (derived from `AbstractNearestNeighbors`)
 * `ɛ`: a Gaussian kernel variance (the scale parameter)
+* `laplacian`: a form of the Laplacian matrix used for spectral decomposition
+   * `:unnorm`: an unnormalized Laplacian
+   * `:sym`: a symmetrically normalized Laplacian
+   * `:rw`: a random walk normalized Laplacian
 
 # Examples
 ```julia
 M = fit(LEM, rand(3,100)) # construct Laplacian eigenmaps model
-R = transform(M)          # perform dimensionality reduction
+R = predict(M)          # perform dimensionality reduction
 ```
 """
-function fit(::Type{LEM}, X::AbstractMatrix{T};
-        k::Int=12, maxoutdim::Int=2, ɛ::Real=1.0, nntype=BruteForce) where {T<:Real}
+function fit(::Type{LEM}, X::AbstractMatrix{T}; k::Int=12, maxoutdim::Int=2,
+             ɛ::Real=1, laplacian::Symbol=:unnorm, nntype=BruteForce) where {T<:Real}
     # Construct NN graph
     d, n = size(X)
     NN = fit(nntype, X)
@@ -65,11 +69,21 @@ function fit(::Type{LEM}, X::AbstractMatrix{T};
     W = A[C,C]
     W .^= 2
     #zidx = findall(W.>37) # will become 0 after exponent
-    W .= exp.(-collect(W) ./ convert(T,ɛ))
+    W = exp.(-collect(W) ./ convert(T,ɛ))
     #W[zidx] .= 0 # remove small values
 
-    L, D = laplacian(W)
-    λ, V = decompose(collect(L), collect(D), maxoutdim)
+    L, D = Laplacian(W)
+    λ, V = if laplacian == :unnorm
+        decompose(L, collect(D), maxoutdim)
+    elseif laplacian == :sym
+        normalize!(L, D, α=1/2, norm=laplacian)
+        decompose(L, maxoutdim)
+    elseif laplacian == :rw
+        normalize!(L, D, α=1, norm=laplacian)
+        decompose(L, maxoutdim)
+    else
+        throw(ArgumentError("Unkown Laplacian type: $laplacian"))
+    end
     return LEM{nntype, T}(d, k, λ, ɛ, transpose(V), NN, C)
 end
 
