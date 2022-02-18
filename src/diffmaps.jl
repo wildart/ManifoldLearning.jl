@@ -101,7 +101,7 @@ function fit(::Type{DiffMap}, X::AbstractMatrix{T};
     # Calculate Laplacian & normalize it
     if α > 0
         normalize!(L, α=α, norm=:sym)     # Lᵅ = D⁻ᵅ*L*D⁻ᵅ
-        normalize!(L, α=α, norm=:rw)      # M = inv(Dᵅ)*Lᵅ
+        normalize!(L, α=α, norm=:rw)      # M =(Dᵅ)⁻¹*Lᵅ
     end
     # Eigendecomposition & reduction
     λ, V = decompose(L, maxoutdim; rev=true, skipfirst=false)

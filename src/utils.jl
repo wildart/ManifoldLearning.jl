@@ -71,14 +71,12 @@ The `norm` parameter specifies normalization type:
 where ``D`` is a diagonal matrix, s.t. ``D_{i,i} = \\sum_j L_{ji}``.
 """
 function normalize!(L::AbstractMatrix, D=Diagonal(vec(sum(L, dims=1)));
-                    α::Real=1, norm=:sym)
-    didx = diagind(D)
-    D⁻¹ = 1 ./ diag(D)
-    D[didx] .= D⁻¹.^α
+                    α::Real=1.0, norm=:rw)
+    D⁻¹ =  Diagonal(1 ./ diag(D).^α)
     if norm == :sym
-        rmul!(lmul!(D, L),D)
+        rmul!(lmul!(D⁻¹, L),D⁻¹)
     elseif norm == :rw
-        lmul!(D, L)
+        lmul!(D⁻¹, L)
     else
         error("Uknown normalization: $norm")
     end

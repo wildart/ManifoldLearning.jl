@@ -32,6 +32,19 @@ rng = StableRNG(83743871)
     @test_throws AssertionError knn(NN, X, 101)
 end
 
+@testset "Laplacian"  begin
+
+    A = [0 1 0; 1 0 1; 0 1 0.0]
+    L, D = ManifoldLearning.Laplacian(A)
+    @test [D[i,i] for i in 1:3] == [1, 2, 1]
+    @test D-L == A
+    Lsym = ManifoldLearning.normalize!(copy(L), D; α=1/2, norm=:sym)
+    @test Lsym ≈ [1 -√.5 0; -√.5 1 -√.5; 0 -√.5 1]
+    Lrw = ManifoldLearning.normalize!(copy(L), D; α=1, norm=:rw)
+    @test Lrw ≈ [1 -1 0; -0.5 1 -0.5; 0 -1 1]
+
+end
+
 @testset "Manifold Learning" begin
     # setup parameters
     k = 12
