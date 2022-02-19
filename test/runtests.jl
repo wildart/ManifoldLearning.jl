@@ -68,25 +68,30 @@ end
             end
 
             # call transformation
-            Y = fit(algorithm, X; kwargs...)
+            M = fit(algorithm, X; kwargs...)
+            Y = predict(M)
 
             # test results
-            @test size(Y) == (3, d)
-            @test size(predict(Y), 2) == size(X, 2)
-            @test length(split(sprint(show, Y), '\n')) > 1
-            @test length(eigvals(Y)) == d
+            @test size(M) == (3, d)
+            if k == 5 && (algorithm === LLE || algorithm === LTSA)
+                @test size(Y, 2) == 987
+            else
+                @test size(Y, 2) == size(X, 2)
+            end
+            @test length(split(sprint(show, M), '\n')) > 1
+            @test length(eigvals(M)) == d
             if algorithm !== DiffMap
-                @test neighbors(Y) == k
-                @test length(vertices(Y)) > 1
+                @test neighbors(M) == k
+                @test length(vertices(M)) > 1
             end
             
             # test if we provide pre-computed Gram matrix
-            if algorithm == DiffMap
+            if algorithm === DiffMap
                 kernel = (x, y) -> exp(-sum((x .- y) .^ 2)) # default kernel
                 custom_K = ManifoldLearning.pairwise(kernel, eachcol(X), symmetric=true)
-                Y_custom_K = fit(algorithm, custom_K; kernel=nothing, kwargs...)
-                @test isnan(size(Y_custom_K)[1])
-                @test predict(Y_custom_K) ≈ predict(Y)
+                M_custom_K = fit(algorithm, custom_K; kernel=nothing, kwargs...)
+                @test isnan(size(M_custom_K)[1])
+                @test predict(M_custom_K) ≈ Y
             end
         end
     end
