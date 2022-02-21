@@ -50,7 +50,7 @@ function adjacency_list(NN::BruteForce{T}, X::AbstractVecOrMat{T}, k::Integer;
 
     A = Vector{Vector{Int}}(undef, n)
     W = Vector{Vector{T}}(undef, n)
-    @inbounds for (j, ds) in pairs(eachcol(D))
+    @inbounds for (j, ds) in enumerate(eachcol(D))
         kidxs = sortperm(ds)[idxs]
         A[j] = kidxs
         W[j] = D[kidxs, j]
@@ -68,7 +68,7 @@ function adjacency_list(NN::BruteForce{T}, X::AbstractVecOrMat{T}, k::Real;
 
     A = Vector{Vector{Int}}(undef, n)
     W = Vector{Vector{T}}(undef, n)
-    @inbounds for (j, ds) in pairs(eachcol(D))
+    @inbounds for (j, ds) in enuemrate(eachcol(D))
         kidxs = self ? findall(0 .<= ds .<= k) : findall(0 .< ds .<= k)
         A[j] = kidxs
         W[j] = D[kidxs, j]
@@ -85,7 +85,7 @@ function adjacency_matrix(NN::BruteForce{T}, X::AbstractVecOrMat{T}, k::Integer;
     idxs = self ? (1:k) : (2:k+1)
 
     A = spzeros(T, n, n)
-    @inbounds for (j, ds) in pairs(eachcol(D))
+    @inbounds for (j, ds) in enumerate(eachcol(D))
         kidxs = sortperm(ds)[idxs]
         w = @view D[kidxs, j]
         A[kidxs, j] .= w
@@ -100,7 +100,7 @@ function adjacency_matrix(NN::BruteForce{T}, X::AbstractVecOrMat{T}, k::Real;
     D = pairwise((x,y)->norm(x-y), eachcol(NN.fitted), eachcol(X))
 
     A = spzeros(T, n, n)
-    @inbounds for (j, ds) in pairs(eachcol(D))
+    @inbounds for (j, ds) in enumerate(eachcol(D))
         idxs = self ? findall(0 .<= ds .<= k) : findall(0 .< ds .<= k)
         w = @view D[idxs, j]
         A[idxs, j] .= w

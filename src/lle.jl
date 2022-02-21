@@ -96,7 +96,7 @@ function fit(::Type{LLE}, X::AbstractMatrix{T};
 
         # calculate weights: wᵢ = (Gᵢ + αI)⁻¹1
         G = zᵢ'zᵢ
-        w = (G  + tol * I) \ fill(one(T), l, 1)
+        w = (G  + tol * I) \ fill(one(T), l, 1) |> vec
         w ./= sum(w)
 
         # M = (I - w)'(I - w) = I - w'I - Iw + w'w
