@@ -3,7 +3,6 @@ module ManifoldLearning
     using LinearAlgebra
     using SparseArrays: AbstractSparseMatrix, SparseMatrixCSC, spzeros, spdiagm,
                         findnz, dropzeros!
-    using StatsAPI: pairwise
     using Statistics: mean
     using MultivariateStats: NonlinearDimensionalityReduction, KernelPCA,
                              dmat2gram, gram2dmat, transform!, projection
@@ -11,7 +10,7 @@ module ManifoldLearning
                   induced_subgraph, weights, SimpleGraph
     using Random: AbstractRNG, default_rng
 
-    import StatsAPI: fit, predict
+    import StatsAPI: fit, predict, pairwise, pairwise!
     import Base: show, summary, size
     import LinearAlgebra: eigvals
     import Graphs: vertices, neighbors

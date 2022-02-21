@@ -149,6 +149,27 @@ function scurve(n::Int = 1000, noise::Real=0.03; segments=1,
     return collect(transpose(X)), labels
 end
 
+"""
+    pairwise!(f, dest, x)
+
+Stores in a vector `dest`, that is a packed upper triangular matrix representation,
+holding the result of applying `f` to all possible pairs of entries in
+iterators `x`.
+"""
+function pairwise!(f, dest::AbstractVector, x)
+    # check sizes
+    n, l = length(x), length(dest)
+    nelem = (n*(n-1))>>1
+    l < nelem && throw(ArgumentError("Not enough elements in `dest`. Must be at least $nelem"))
+
+    k = 1
+    @inbounds for (i, xi) in enumerate(x), (j, yj) in enumerate(x)
+        i >= j && continue
+        dest[k] = f(xi, yj)
+        k+=1
+    end
+    return dest
+end
 
 "Perform spectral decomposition for Ax=λI"
 function decompose(M::AbstractMatrix{<:Real}, d::Int; rev=false, skipfirst=true)
