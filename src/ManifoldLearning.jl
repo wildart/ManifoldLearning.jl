@@ -2,11 +2,12 @@ module ManifoldLearning
 
     using LinearAlgebra
     using SparseArrays: AbstractSparseMatrix, SparseMatrixCSC, spzeros, spdiagm,
-                        findnz, dropzeros!
+                        findnz, dropzeros!, nonzeros, sparse
+    using StatsAPI: pairwise
     using Statistics: mean
     using MultivariateStats: NonlinearDimensionalityReduction, KernelPCA,
                              dmat2gram, gram2dmat, transform!, projection,
-                             symmetrize!
+                             symmetrize!, PCA
     using Graphs: nv, add_edge!, connected_components, dijkstra_shortest_paths,
                   induced_subgraph, SimpleGraph
     using Random: AbstractRNG, default_rng
@@ -26,6 +27,7 @@ module ManifoldLearning
     LTSA,               # Type: Local Tangent Space Alignment model
     LEM,                # Type: Laplacian Eigenmaps model
     DiffMap,            # Type: Diffusion maps model
+    TSNE,               # Type: t-Distributed Stochastic Neighborhood Embedding
 
     ## common interface
     outdim,             # the output dimension of the transformation
@@ -44,6 +46,7 @@ module ManifoldLearning
     include("ltsa.jl")
     include("lem.jl")
     include("diffmaps.jl")
+    include("tsne.jl")
 
     # deprecated functions
     @deprecate transform(m) predict(m)

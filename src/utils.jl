@@ -156,9 +156,11 @@ Stores in a vector `dest`, that is a packed upper triangular matrix representati
 holding the result of applying `f` to all possible pairs of entries in
 iterators `x`.
 """
-function pairwise!(f, dest::AbstractVector, x; skipdiagonal=false)
+function pairwise!(f, dest::AbstractVector{T}, x;
+                   skipdiagonal=false) where {T<:Real}
     # check sizes
-    n, l = length(x), length(dest)
+    n = length(x)
+    l = length(dest)
     nelem = (n*(n+(skipdiagonal ? -1 : 1)))>>1
     l < nelem && throw(ArgumentError("Not enough elements in `dest`. Must be at least $nelem"))
 
@@ -170,7 +172,6 @@ function pairwise!(f, dest::AbstractVector, x; skipdiagonal=false)
     end
     return dest
 end
-
 
 """
     unpack(v [; skipdiagonal=false])
@@ -193,6 +194,34 @@ function unpack(v::AbstractVector{T}; skipdiagonal=false) where {T}
     return Symmetric(A)
 end
 
+"""
+    compact(A)
+
+Return a packed upper triangular part of the symmetric matrix `A` as a vector.
+"""
+function compact(S::AbstractMatrix{T}) where {T}
+    n = size(S,1)
+    C = zeros(T, (n*(n-1))>>1)
+    compact!(C, S)
+end
+function compact!(C::AbstractVector{T}, S::AbstractMatrix{T}) where {T}
+    n = size(S,1)
+    k = 1
+    for i in 1:n-1
+        for j in i+1:n
+            C[k] = S[i,j]
+            k+=1
+        end
+    end
+    return C
+end
+
+"""
+    sparse(E, W, n)
+
+Construct a sparse weighted adjacency `(n,n)`-matrix from the adjacency list `E`
+and weights `W`.
+"""
 function sparse(E::AbstractVector{TI}, W::AbstractVector{TV}, n::Integer;
                 symmetric::Bool=true) where {TI<:AbstractVector{<:Integer},
                                              TV<:AbstractVector{<:Real}}
