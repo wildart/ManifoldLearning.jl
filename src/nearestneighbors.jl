@@ -68,7 +68,7 @@ function adjacency_list(NN::BruteForce{T}, X::AbstractVecOrMat{T}, k::Real;
 
     A = Vector{Vector{Int}}(undef, n)
     W = Vector{Vector{T}}(undef, n)
-    @inbounds for (j, ds) in enuemrate(eachcol(D))
+    @inbounds for (j, ds) in enumerate(eachcol(D))
         kidxs = self ? findall(0 .<= ds .<= k) : findall(0 .< ds .<= k)
         A[j] = kidxs
         W[j] = D[kidxs, j]

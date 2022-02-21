@@ -9,7 +9,7 @@ rng = StableRNG(83743871)
 @testset "Nearest Neighbors" begin
     # setup parameters
     k = 12
-    X, L = swiss_roll(100, rng=rng)
+    X, _ = swiss_roll(100, rng=rng)
     DD, EE = knn(X,k)
     @test_throws AssertionError knn(zeros(3,10), k)
 
@@ -32,6 +32,11 @@ rng = StableRNG(83743871)
     A = ManifoldLearning.adjacency_matrix(NN, X, k/7)
     @test size(X,2) == size(A,2)
     @test maximum(A) <= k/7
+
+    E, W = ManifoldLearning.adjacency_list(NN, X, k/7)
+    @test size(X,2) == length(W)
+    @test size(X,2) == length(E)
+    @test maximum(Iterators.flatten(W)) <= k/7
 
     @test_throws AssertionError ManifoldLearning.adjacency_matrix(NN, X, 101)
     @test_throws AssertionError ManifoldLearning.adjacency_list(NN, X, 101)
