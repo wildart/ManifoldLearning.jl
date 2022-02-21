@@ -41,16 +41,30 @@ rng = StableRNG(83743871)
     @test_throws AssertionError ManifoldLearning.adjacency_matrix(NN, X, 101)
     @test_throws AssertionError ManifoldLearning.adjacency_list(NN, X, 101)
 
-    d = zeros(10)
-    @test_throws ArgumentError ManifoldLearning.pairwise!(kernel, d, eachcol(X))
-    k = (x,y)->x'y
     n = 5
-    ManifoldLearning.pairwise!(k, d, eachcol(X[:,1:n]))
-    D = ManifoldLearning.pairwise(k, eachcol(X[:,1:n]))
+    ker = (x,y)->x'y
+    D = ManifoldLearning.pairwise(ker, eachcol(X[:,1:n]))
+
+    d = zeros(10)
+    @test_throws ArgumentError ManifoldLearning.pairwise!(ker, d, eachcol(X))
+
+    ManifoldLearning.pairwise!(ker, d, eachcol(X[:,1:n]), skipdiagonal=true)
     @testset for i in 1:n, j in i+1:n
         k = n*(i-1) - (i*(i+1))>>1 + j
         @test D[i,j] ≈ d[k]
     end
+    S = ManifoldLearning.unpack(d, skipdiagonal=true)
+    @test iszero(D-S-D.*[i==j ? 1.0 : 0.0 for i in 1:n, j in 1:n])
+
+    d = zeros(15)
+    ManifoldLearning.pairwise!(ker, d, eachcol(X[:,1:n]), skipdiagonal=false)
+    @testset for i in 1:n, j in i:n
+        k = -((i-2n)*(i-1))>>1 + j
+        @test D[i,j] ≈ d[k]
+    end
+    S = ManifoldLearning.unpack(d, skipdiagonal=false)
+    @test iszero(D-S)
+
 end
 
 @testset "Laplacian" begin

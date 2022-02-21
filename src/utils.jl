@@ -150,25 +150,47 @@ function scurve(n::Int = 1000, noise::Real=0.03; segments=1,
 end
 
 """
-    pairwise!(f, dest, x)
+    pairwise!(f, dest, x; skipdiagonal=false)
 
 Stores in a vector `dest`, that is a packed upper triangular matrix representation,
 holding the result of applying `f` to all possible pairs of entries in
 iterators `x`.
 """
-function pairwise!(f, dest::AbstractVector, x)
+function pairwise!(f, dest::AbstractVector, x; skipdiagonal=false)
     # check sizes
     n, l = length(x), length(dest)
-    nelem = (n*(n-1))>>1
+    nelem = (n*(n+(skipdiagonal ? -1 : 1)))>>1
     l < nelem && throw(ArgumentError("Not enough elements in `dest`. Must be at least $nelem"))
 
     k = 1
     @inbounds for (i, xi) in enumerate(x), (j, yj) in enumerate(x)
-        i >= j && continue
+        (i > j || (skipdiagonal && i == j )) && continue
         dest[k] = f(xi, yj)
         k+=1
     end
     return dest
+end
+
+
+"""
+    unpack(v [; skipdiagonal=false])
+
+Return a symmetric matrix from from packed upper triangular matrix, stored as
+vector `v`,
+"""
+function unpack(v::AbstractVector{T}; skipdiagonal=false) where {T}
+    l = length(v)
+    nelem = (sqrt(8l+1)+1)/2
+    !isinteger(nelem) && throw(ArgumentError("Incorrect input size"))
+
+    n = Int(nelem)-!skipdiagonal
+    A = zeros(T, n, n)
+    k=1
+    for i in 1:(n-skipdiagonal), j in (i+skipdiagonal):n
+        A[i,j] = v[k]
+        k+=1
+    end
+    return Symmetric(A)
 end
 
 "Perform spectral decomposition for Ax=λI"
