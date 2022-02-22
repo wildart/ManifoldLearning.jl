@@ -83,12 +83,15 @@ end
 @testset "Manifold Learning" begin
     # setup parameters
     k = 12
+    n = 50
     d = 2
-    X, L = swiss_roll(;rng=rng)
+    X, L = swiss_roll(n; rng=rng)
 
     # test algorithms
     @testset for algorithm in [Isomap, LEM, LLE, HLLE, LTSA, DiffMap]
         for (k, T) in zip([5, 12], [Float32, Float64])
+            X = convert(Matrix{T}, X)
+
             # construct KW parameters
             kwargs = [:maxoutdim=>d]
             if algorithm == DiffMap
@@ -101,27 +104,45 @@ end
             M = fit(algorithm, X; kwargs...)
             Y = predict(M)
 
-            # test results
+            # basic test
             @test size(M) == (3, d)
             if k == 5 && (algorithm === LLE || algorithm === LTSA)
-                @test size(Y, 2) == 987
+                @test size(Y, 2) < n
             else
-                @test size(Y, 2) == size(X, 2)
+                @test size(Y, 2) == n
             end
+            @test size(Y,1) == d
+            @test eltype(Y) === T
+            @test size(M) == (3, d)
             @test length(split(sprint(show, M), '\n')) > 1
             @test length(eigvals(M)) == d
+
+            # additional options
             if algorithm !== DiffMap
                 @test neighbors(M) == k
                 @test length(vertices(M)) > 1
             end
-            
-            # test if we provide pre-computed Gram matrix
+            if algorithm === LEM
+                @testset for L in [:sym, :rw]
+                    Y = fit(algorithm, X; laplacian=L, kwargs...) |> predict
+                    @test size(Y, 2) == n
+                    @test eltype(Y) === T
+                end
+            end
             if algorithm === DiffMap
+                # test if we provide pre-computed Gram matrix
                 kernel = (x, y) -> exp(-sum((x .- y) .^ 2)) # default kernel
                 custom_K = ManifoldLearning.pairwise(kernel, eachcol(X), symmetric=true)
                 M_custom_K = fit(algorithm, custom_K; kernel=nothing, kwargs...)
                 @test isnan(size(M_custom_K)[1])
                 @test predict(M_custom_K) ≈ Y
+
+                @testset for α in [0, 0.5, 1.0], ε in [1.0, Inf]
+                    Y = predict(fit(DiffMap, X, α=α, ε=ε))
+                    @test all(.!isnan.(Y))
+                    @test size(Y, 2) == size(X, 2)
+                    @test eltype(Y) === T
+                end
             end
         end
     end
