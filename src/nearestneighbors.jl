@@ -112,7 +112,7 @@ function knn(NN::BruteForce{T}, X::AbstractVecOrMat{T}, k::Integer;
 end
 
 function inradius(NN::BruteForce{T}, X::AbstractVecOrMat{T}, r::Real;
-                 self::Bool=false, weights::Bool=false, kwargs...) where T<:Real
+                  self::Bool=false, weights::Bool=false, kwargs...) where T<:Real
     # construct distance matrix
     D = pairwise((x,y)->norm(x-y), eachcol(NN.fitted), eachcol(X))
 

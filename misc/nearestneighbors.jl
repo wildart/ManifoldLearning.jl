@@ -1,31 +1,48 @@
-# Additional wrappers for performant calculations of nearest neighbors 
+# Additional wrappers for calculations of nearest neighbors
 
 using ManifoldLearning
-import Base: show
+using LinearAlgebra: norm
+import Base: show, size
 import StatsAPI: fit
-import ManifoldLearning: knn
+import ManifoldLearning: knn, inradius
 
 # Wrapper around NearestNeighbors functionality
 using NearestNeighbors: NearestNeighbors
 struct KDTree <: ManifoldLearning.AbstractNearestNeighbors
-    fitted::NearestNeighbors.KDTree
+    fitted::AbstractMatrix
+    tree::NearestNeighbors.KDTree
 end
 show(io::IO, NN::KDTree) = print(io, "KDTree")
-fit(::Type{KDTree}, X::AbstractMatrix{T}) where {T<:Real} = KDTree(NearestNeighbors.KDTree(X))
-function knn(NN::KDTree, X::AbstractVecOrMat{T}, k::Int; self=false) where {T<:Real}
+fit(::Type{KDTree}, X::AbstractMatrix{T}) where {T<:Real} =
+    KDTree(X, NearestNeighbors.KDTree(X))
+size(NN::KDTree) = (length(NN.fitted.data[1]), length(NN.fitted.data))
+function knn(NN::KDTree, X::AbstractVecOrMat{T}, k::Integer;
+             self::Bool=false, weights::Bool=true, kwargs...) where {T<:Real}
     m, n = size(X)
     @assert n > k "Number of observations must be more then $(k)"
-
-    idxs, dist = NearestNeighbors.knn(NN.fitted, X, k+1, true)
-    D = Array{T}(undef, k, n)
-    E = Array{Int32}(undef, k, n)
-    for i in eachindex(idxs)
-        E[:, i] = idxs[i][2:end]
-        D[:, i] = dist[i][2:end]
+    A, D = NearestNeighbors.knn(NN.tree, X, k, true)
+    return A, D
+end
+function inradius(NN::KDTree, X::AbstractVecOrMat{T}, r::Real;
+                  weights::Bool=false, kwargs...) where {T<:Real}
+    m, n = size(X)
+    A = NearestNeighbors.inrange(NN.tree, X, r)
+    W = Vector{Vector{T}}(undef, (weights ? n : 0))
+    if weights
+        for (i, ii) in enumerate(A)
+            W[i] = T[]
+            if length(ii) > 0
+                for v in eachcol(NN.fitted[:, ii])
+                    d = norm(X[:,i] - v)
+                    push!(W[i], d)
+                end
+            end
+        end
     end
-    return D, E
+    return A, W
 end
 
+#=
 # Wrapper around FLANN functionality
 using FLANN: FLANN
 struct FLANNTree{T <: Real} <: ManifoldLearning.AbstractNearestNeighbors
@@ -41,4 +58,4 @@ function knn(NN::FLANNTree, X::AbstractVecOrMat{T}, k::Int; self=false) where {T
     E, D = FLANN.knn(NN.index, X, NN.k+1)
     sqrt.(@view D[2:end, :]), @view E[2:end, :]
 end
-
+=#

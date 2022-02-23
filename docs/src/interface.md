@@ -46,18 +46,16 @@ ManifoldLearning.AbstractNearestNeighbors
 The above interface requires implementation of the following methods:
 
 ```@docs
-ManifoldLearning.knn(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}, k::Integer) where T<:Real
-ManifoldLearning.inradius(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}, r::Real) where T<:Real
+ManifoldLearning.knn(NN::ManifoldLearning.AbstractNearestNeighbors, X::AbstractVecOrMat{T}, k::Integer) where T<:Real
+ManifoldLearning.inradius(NN::ManifoldLearning.AbstractNearestNeighbors, X::AbstractVecOrMat{T}, r::Real) where T<:Real
 ```
 
 Following auxiliary methods available for any implementation of
 `AbstractNearestNeighbors`-derived type:
 
 ```@docs
-ManifoldLearning.adjacency_list(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}, k::Integer) where T<:Real
-ManifoldLearning.adjacency_list(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}, r::Real) where T<:Real
-ManifoldLearning.adjacency_matrix(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}, k::Integer) where T<:Real
-ManifoldLearning.adjacency_matrix(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}, r::Real) where T<:Real
+ManifoldLearning.adjacency_list(NN::ManifoldLearning.AbstractNearestNeighbors, X::AbstractVecOrMat{T}, k::Integer) where T<:Real
+ManifoldLearning.adjacency_matrix(NN::ManifoldLearning.AbstractNearestNeighbors, X::AbstractVecOrMat{T}, k::Integer) where T<:Real
 ```
 
 The default implementation uses inefficient ``O(n^2)`` algorithm for nearest
