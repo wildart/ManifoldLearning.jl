@@ -193,6 +193,23 @@ function unpack(v::AbstractVector{T}; skipdiagonal=false) where {T}
     return Symmetric(A)
 end
 
+function sparse(E::AbstractVector{TI}, W::AbstractVector{TV}, n::Integer;
+                symmetric::Bool=true) where {TI<:AbstractVector{<:Integer},
+                                             TV<:AbstractVector{<:Real}}
+    # check sizes
+    k, l = length(E), length(W)
+    k != l && throw(ArgumentError("Incorrect input size"))
+    # construct sp matrix
+    A = spzeros(eltype(eltype(W)), n, n)
+    @inbounds for (j,(es, ds)) in enumerate(zip(E, W))
+        A[es, j] .= ds
+        if symmetric
+            A[j, es] .= ds
+        end
+    end
+    return A
+end
+
 "Perform spectral decomposition for Ax=λI"
 function decompose(M::AbstractMatrix{<:Real}, d::Int; rev=false, skipfirst=true)
     W = isa(M, AbstractSparseMatrix) ? Symmetric(Matrix(M)) : Symmetric(M)
@@ -210,3 +227,4 @@ function decompose(A::AbstractMatrix{<:Real}, B::AbstractMatrix{<:Real}, d::Int;
     idx = sortperm(F.values, rev=rev)[2:d+1]
     return F.values[idx], F.vectors[:,idx]
 end
+

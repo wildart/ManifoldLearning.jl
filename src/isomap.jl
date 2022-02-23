@@ -27,7 +27,7 @@ vertices(R::Isomap) = R.component
 function summary(io::IO, R::Isomap)
     id, od = size(R)
     msg = isinteger(R.k) ? "neighbors" : "epsilon"
-    print(io, "Isomap{$(R.nearestneighbors)}(indim = $id, outdim = $od, $msg = $(R.k)")
+    print(io, "Isomap{$(R.nearestneighbors)}(indim = $id, outdim = $od, $msg = $(R.k))")
 end
 
 ## interface functions
@@ -66,7 +66,10 @@ function fit(::Type{Isomap}, X::AbstractMatrix{T};
         DD[i,:] .= dj.dists
     end
 
-    M = fit(KernelPCA, dmat2gram(DD), kernel=nothing, maxoutdim=maxoutdim)
+    broadcast!(x->-x*x/2, DD, DD)
+    #symmetrize!(DD) # error in MvStats
+    DD = (DD+DD')/2
+    M = fit(KernelPCA, DD, kernel=nothing, maxoutdim=maxoutdim)
 
     return Isomap{nntype}(d, k, M, NN, C)
 end
@@ -85,7 +88,7 @@ Returns a transformed out-of-sample data `X` given the Isomap model `R` into a r
 """
 function predict(R::Isomap, X::AbstractVecOrMat{T}) where {T<:Real}
     n = size(X,2)
-    E, W = adjacency_list(R.nearestneighbors, X, R.k, self = true)
+    E, W = adjacency_list(R.nearestneighbors, X, R.k, self = true, weights=true)
     D = gram2dmat(R.model.X)
 
     G = zeros(size(R.model.X,2), n)
@@ -95,6 +98,6 @@ function predict(R::Isomap, X::AbstractVecOrMat{T}) where {T<:Real}
 
     broadcast!(x->-x*x/2, G, G)
     transform!(R.model.center, G)
-    return projection(R.model)'*G'
+    return projection(R.model)'*G
 end
 

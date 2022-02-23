@@ -5,15 +5,17 @@ module ManifoldLearning
                         findnz, dropzeros!
     using Statistics: mean
     using MultivariateStats: NonlinearDimensionalityReduction, KernelPCA,
-                             dmat2gram, gram2dmat, transform!, projection
+                             dmat2gram, gram2dmat, transform!, projection,
+                             symmetrize!
     using Graphs: nv, add_edge!, connected_components, dijkstra_shortest_paths,
-                  induced_subgraph, weights, SimpleGraph
+                  induced_subgraph, SimpleGraph
     using Random: AbstractRNG, default_rng
 
     import StatsAPI: fit, predict, pairwise, pairwise!
     import Base: show, summary, size
     import LinearAlgebra: eigvals
     import Graphs: vertices, neighbors
+    import SparseArrays: sparse
 
     export
 

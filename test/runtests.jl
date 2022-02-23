@@ -1,5 +1,4 @@
 using ManifoldLearning
-using ManifoldLearning: BruteForce, knn, swiss_roll
 using Test
 using Statistics
 using StableRNGs
@@ -9,16 +8,16 @@ rng = StableRNG(83743871)
 @testset "Nearest Neighbors" begin
     # setup parameters
     k = 12
-    X, _ = swiss_roll(100, rng=rng)
-    DD, EE = knn(X,k)
-    @test_throws AssertionError knn(zeros(3,10), k)
+    X, _ = ManifoldLearning.swiss_roll(100, rng=rng)
+    DD, EE = ManifoldLearning.knn(X,k)
+    @test_throws AssertionError ManifoldLearning.knn(zeros(3,10), k)
 
-    NN = fit(BruteForce, X)
+    NN = fit(ManifoldLearning.BruteForce, X)
     A = ManifoldLearning.adjacency_matrix(NN, X, k)
     @test size(X,2) == size(A,2)
     @test A ≈ ManifoldLearning.adjacency_matrix(collect(eachcol(EE)), collect(eachcol(DD)))
 
-    E, W = ManifoldLearning.adjacency_list(NN, X, k)
+    E, W = ManifoldLearning.adjacency_list(NN, X, k, weights=true)
     @test size(X,2) == length(W) && length(W[1]) == k
     @test size(X,2) == length(E) && length(E[1]) == k
     @test hcat(E...) == EE
@@ -33,7 +32,7 @@ rng = StableRNG(83743871)
     @test size(X,2) == size(A,2)
     @test maximum(A) <= k/7
 
-    E, W = ManifoldLearning.adjacency_list(NN, X, k/7)
+    E, W = ManifoldLearning.adjacency_list(NN, X, k/7, weights=true)
     @test size(X,2) == length(W)
     @test size(X,2) == length(E)
     @test maximum(Iterators.flatten(W)) <= k/7
@@ -85,7 +84,7 @@ end
     k = 12
     n = 50
     d = 2
-    X, L = swiss_roll(n; rng=rng)
+    X, L = ManifoldLearning.swiss_roll(n; rng=rng)
 
     # test algorithms
     @testset for algorithm in [Isomap, LEM, LLE, HLLE, LTSA, DiffMap]
