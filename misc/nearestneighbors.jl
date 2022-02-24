@@ -4,7 +4,7 @@ using ManifoldLearning
 using LinearAlgebra: norm
 import Base: show, size
 import StatsAPI: fit
-import ManifoldLearning: knn, inradius
+import ManifoldLearning: knn, inrange
 
 # Wrapper around NearestNeighbors functionality
 using NearestNeighbors: NearestNeighbors
@@ -26,7 +26,7 @@ function knn(NN::KDTree, X::AbstractVecOrMat{T}, k::Integer;
     return A, D
 end
 
-function inradius(NN::KDTree, X::AbstractVecOrMat{T}, r::Real;
+function inrange(NN::KDTree, X::AbstractVecOrMat{T}, r::Real;
                   weights::Bool=false, kwargs...) where {T<:Real}
     m, n = size(X)
     A = NearestNeighbors.inrange(NN.tree, X, r)
@@ -77,7 +77,7 @@ function knn(NN::FLANNTree, X::AbstractVecOrMat{T}, k::Integer;
     return A, W
 end
 
-function inradius(NN::FLANNTree, X::AbstractVecOrMat{T}, r::Real;
+function inrange(NN::FLANNTree, X::AbstractVecOrMat{T}, r::Real;
                   weights::Bool=false, kwargs...) where {T<:Real}
     m, n = size(X)
     A = Vector{Vector{Int}}(undef, n)

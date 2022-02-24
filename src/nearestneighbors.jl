@@ -21,12 +21,12 @@ for points in the `(m,n)`-matrix `X` given the `NN` object.
 function knn(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}, k::Integer; kwargs...) where T<:Real end
 
 """
-    inradius(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}, r::Real; kwargs...) -> (I,D)
+    inrange(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}, r::Real; kwargs...) -> (I,D)
 
 Returns collections of point indexes and distances in radius `r` of points in
 the `(m,n)`-matrix `X` given the `NN` object.
 """
-function inradius(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}, r::Real; kwargs...) where T<:Real end
+function inrange(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}, r::Real; kwargs...) where T<:Real end
 
 """
     adjacency_list(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T}, k::Real; kwargs...) -> (A, W)
@@ -44,7 +44,7 @@ function adjacency_list(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T},
 end
 function adjacency_list(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T},
                         k::Real; weights::Bool=false, kwargs...) where T<:Real
-    A, W = inradius(NN, X, k; weights=weights, kwargs...)
+    A, W = inrange(NN, X, k; weights=weights, kwargs...)
     return A, W
 end
 
@@ -70,7 +70,7 @@ function adjacency_matrix(NN::AbstractNearestNeighbors, X::AbstractVecOrMat{T},
     n = size(NN)[2]
     m = length(eachcol(X))
     @assert n >=m "Cannot construc matrix for more then $n fitted points"
-    E, W = inradius(NN, X, r; weights=true, kwargs...)
+    E, W = inrange(NN, X, r; weights=true, kwargs...)
     return sparse(E, W, n, symmetric=symmetric)
 end
 
@@ -111,7 +111,7 @@ function knn(NN::BruteForce{T}, X::AbstractVecOrMat{T}, k::Integer;
     return A, W
 end
 
-function inradius(NN::BruteForce{T}, X::AbstractVecOrMat{T}, r::Real;
+function inrange(NN::BruteForce{T}, X::AbstractVecOrMat{T}, r::Real;
                   self::Bool=false, weights::Bool=false, kwargs...) where T<:Real
     # construct distance matrix
     D = pairwise((x,y)->norm(x-y), eachcol(NN.fitted), eachcol(X))

@@ -47,7 +47,7 @@ The above interface requires implementation of the following methods:
 
 ```@docs
 ManifoldLearning.knn(NN::ManifoldLearning.AbstractNearestNeighbors, X::AbstractVecOrMat{T}, k::Integer) where T<:Real
-ManifoldLearning.inradius(NN::ManifoldLearning.AbstractNearestNeighbors, X::AbstractVecOrMat{T}, r::Real) where T<:Real
+ManifoldLearning.inrange(NN::ManifoldLearning.AbstractNearestNeighbors, X::AbstractVecOrMat{T}, r::Real) where T<:Real
 ```
 
 Following auxiliary methods available for any implementation of
