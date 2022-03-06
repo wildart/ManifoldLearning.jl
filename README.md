@@ -15,6 +15,7 @@
 - Hessian Eigenmaps (HLLE)
 - Laplacian Eigenmaps (LEM)
 - Local tangent space alignment (LTSA)
+- t-Distributed Stochastic Neighborhood Embedding (t-SNE)
 
 ## Installation
 

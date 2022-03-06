@@ -33,7 +33,7 @@ function perplexities(D::AbstractMatrix{T}, p::Real=30;
     P = zeros(T, size(D))
     βs = zeros(T, n)
     Ĥ = log(p) # desired entropy
-    for (i, Dᵢ) in pairs(eachcol(D))
+    for (i, Dᵢ) in enumerate(eachcol(D))
         Pᵢ = @view P[:,i]
         β = 1 # precision β = 1/σ²
         βmax, βmin = Inf, 0 
