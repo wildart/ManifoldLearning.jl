@@ -87,14 +87,17 @@ end
     X, L = ManifoldLearning.swiss_roll(n; rng=rng)
 
     # test algorithms
-    @testset for algorithm in [Isomap, LEM, LLE, HLLE, LTSA, DiffMap]
+    @testset for algorithm in [Isomap, LEM, LLE, HLLE, LTSA, DiffMap, TSNE]
+        #print("$algorithm ")
         for (k, T) in zip([5, 12], [Float32, Float64])
             X = convert(Matrix{T}, X)
 
             # construct KW parameters
             kwargs = [:maxoutdim=>d]
-            if algorithm == DiffMap
+            if algorithm === DiffMap
                 push!(kwargs, :t => k)
+            elseif algorithm === TSNE
+                push!(kwargs, :p => k)
             else
                 push!(kwargs, :k => k)
             end
@@ -114,12 +117,14 @@ end
             @test eltype(Y) === T
             @test size(M) == (3, d)
             @test length(split(sprint(show, M), '\n')) > 1
-            @test length(eigvals(M)) == d
 
             # additional options
-            if algorithm !== DiffMap
+            if algorithm !== DiffMap && algorithm !== TSNE
                 @test neighbors(M) == k
                 @test length(vertices(M)) > 1
+            end
+            if algorithm !== TSNE
+                @test length(eigvals(M)) == d
             end
             if algorithm === LEM
                 @testset for L in [:sym, :rw]

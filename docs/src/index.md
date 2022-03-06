@@ -43,5 +43,6 @@ Following dimensionality reduction methods are implemented in this package:
 |[`LEM`](@ref)| Laplacian Eigenmaps |
 |[`LTSA`](@ref)| Local Tangent Space Alignment |
 |[`DiffMap`](@ref)| Diffusion maps |
+|[`TSNE`](@ref)| t-Distributed Stochastic Neighborhood Embedding |
 
 **Notes:** All methods implemented in this package adopt the column-major convention of JuliaStats: in a data matrix, each column corresponds to a sample/observation, while each row corresponds to a feature (variable or attribute).

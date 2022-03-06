@@ -14,6 +14,7 @@ makedocs(
 		 	"Laplacian Eigenmaps" => "lem.md",
 		 	"Local Tangent Space Alignment" => "ltsa.md",
 			"Diffusion maps" => "diffmap.md",
+			"t-SNE" => "tsne.md",
 		],
 		"Misc" => [
 			"Interface" => "interface.md",
