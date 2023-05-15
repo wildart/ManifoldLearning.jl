@@ -28,6 +28,7 @@ module ManifoldLearning
     LEM,                # Type: Laplacian Eigenmaps model
     DiffMap,            # Type: Diffusion maps model
     TSNE,               # Type: t-Distributed Stochastic Neighborhood Embedding
+    TriMap,             # Type: Trimap
 
     ## common interface
     outdim,             # the output dimension of the transformation
@@ -35,7 +36,7 @@ module ManifoldLearning
     predict,            # transform the data using a given model
     eigvals,            # eigenvalues from the spectral analysis
     neighbors,          # the number of nearest neighbors used for aproximate local subspace
-    vertices           # vertices of largest connected component
+    vertices            # vertices of largest connected component
 
     include("interface.jl")
     include("utils.jl")
@@ -47,6 +48,7 @@ module ManifoldLearning
     include("lem.jl")
     include("diffmaps.jl")
     include("tsne.jl")
+    include("trimap.jl")
 
     # deprecated functions
     @deprecate transform(m) predict(m)
