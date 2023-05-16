@@ -1,8 +1,13 @@
-"""
-    TODO: DOCUMENTATION 
-"""
+# TriMap 
+# -------------------------------------------------------
+# TriMap: Large-scale Dimensionality Reduction Using Triplets,
+# Ehsan Amid, Manfred K. Warmuth, 2022, arXiv:1910.00204
 
+"""
+TriMap{NN <: AbstractNearestNeighbors, T <: Real} <:NonlinearDimensionalityReduction
 
+The `TriMap` type represents a TriMap model constructed for `T` type data with a help of the `NN` nearest neighbor algorithm.
+"""
 struct TriMap{NN <: AbstractNearestNeighbors, T<: Real} <: NonlinearDimensionalityReduction
     d :: Int
     m₁ :: Int
@@ -296,7 +301,7 @@ end
 end
 
 # Implements the routine as described in 
-#  https://arxiv.org/abs/1910.00204
+# https://arxiv.org/abs/1910.00204
 @inline function trimap(X :: AbstractMatrix{T}, 
                 maxoutdim :: Integer=2, 
                 maxiter :: Integer=400, 
